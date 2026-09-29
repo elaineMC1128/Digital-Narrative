@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jeju Haenyeo · 제주 해녀</title>
+  <meta name="description" content="An interactive documentary about the women divers of Jeju.">
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="is-locked">
+
+  <!-- film grain over everything -->
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- global UI (hidden until the visitor enters) -->
+  <header class="topbar" aria-label="Site">
+    <button class="topbar__brand" type="button" data-scroll-to="#top">Jeju Haenyeo <span class="kr">제주 해녀</span></button>
+    <p class="topbar__now" aria-live="polite"><span class="topbar__num"></span><span class="topbar__name"></span></p>
+    <button class="sound-toggle" type="button" aria-pressed="false">
+      <span class="sound-toggle__bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="sound-toggle__label">Sound off</span>
+    </button>
+  </header>
+  <nav class="chapnav" aria-label="Chapters"></nav>
+  <div class="progress" aria-hidden="true"><span></span></div>
+
+  <main id="story"></main>
+
+  <!-- libraries (local copies, work offline) -->
+  <script src="js/vendor/gsap.min.js"></script>
+  <script src="js/vendor/ScrollTrigger.min.js"></script>
+  <script src="js/vendor/lenis.min.js"></script>
+  <script src="js/vendor/howler.min.js"></script>
+  <!-- project -->
+  <script src="js/content.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

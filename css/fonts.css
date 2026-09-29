@@ -1,0 +1,18 @@
+/* Self-hosted fonts (work offline). Files in /fonts. */
+@font-face { font-family: "Oswald"; font-weight: 400; font-style: normal; font-display: swap; src: url("../fonts/oswald-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Oswald"; font-weight: 500; font-style: normal; font-display: swap; src: url("../fonts/oswald-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Oswald"; font-weight: 600; font-style: normal; font-display: swap; src: url("../fonts/oswald-latin-600-normal.woff2") format("woff2"); }
+
+@font-face { font-family: "Cormorant Garamond"; font-weight: 400; font-style: normal; font-display: swap; src: url("../fonts/cormorant-garamond-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant Garamond"; font-weight: 400; font-style: italic; font-display: swap; src: url("../fonts/cormorant-garamond-latin-400-italic.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant Garamond"; font-weight: 500; font-style: normal; font-display: swap; src: url("../fonts/cormorant-garamond-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant Garamond"; font-weight: 500; font-style: italic; font-display: swap; src: url("../fonts/cormorant-garamond-latin-500-italic.woff2") format("woff2"); }
+
+@font-face { font-family: "Jost"; font-weight: 300; font-style: normal; font-display: swap; src: url("../fonts/jost-latin-300-normal.woff2") format("woff2"); }
+@font-face { font-family: "Jost"; font-weight: 400; font-style: normal; font-display: swap; src: url("../fonts/jost-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Jost"; font-weight: 400; font-style: italic; font-display: swap; src: url("../fonts/jost-latin-400-italic.woff2") format("woff2"); }
+@font-face { font-family: "Jost"; font-weight: 500; font-style: normal; font-display: swap; src: url("../fonts/jost-latin-500-normal.woff2") format("woff2"); }
+
+/* Korean: subset to only the characters used on the site (tiny file).
+   If you add new Korean words, ask Claude to regenerate this file. */
+@font-face { font-family: "Noto Serif KR"; font-weight: 500; font-style: normal; font-display: swap; src: url("../fonts/noto-serif-kr-subset.woff2") format("woff2"); }
