@@ -1,0 +1,4 @@
+GSAP and ScrollTrigger 3.15.0
+Copyright (c) GreenSock, Inc.
+License: https://gsap.com/community/standard-license/
+Bundled for this local class prototype.
