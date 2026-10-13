@@ -550,3 +550,13 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
   .dots[style] { grid-template-columns: repeat(25, minmax(0, 1fr)); }
   .m-spread__fig.is-pair .m-spread__frame--2 { width: 70%; margin-top: -12%; }
 }
+
+/* --- 06 additions (13 Oct): pull quotes and credits inside text columns --- */
+.m-spread__text .pull, .m-scene__text .pull, .m-text .pull { display: block; font: 400 italic clamp(20px, 1.7vw, 26px)/1.35 var(--f-serif); color: var(--fg); margin-top: .4em; }
+.m-spread__text .cite, .m-scene__text .cite, .m-text .cite { font: 500 var(--t-caption)/1.5 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+/* ending opens on a full-screen photo with the closing statement */
+.ending--hero { padding-top: 0; }
+.ending__hero { position: relative; height: 100vh; min-height: 560px; overflow: hidden; margin-bottom: clamp(40px, 8vh, 96px); }
+.ending__media { position: absolute; inset: 0; }
+.ending__hero .shade { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg) 0%, transparent 22%); }
+/* the photo is left clear; the closing words follow it on the dark page */

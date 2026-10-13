@@ -78,7 +78,8 @@ const REFERENCES = {
   T2: 'Chan E and Ku D (2020) <i>World Oceans Day / Interview with a Korean Haenyeo (female diver)</i>, Vogue Taiwan, accessed 6 September 2026. https://www.vogue.com.tw/lifestyle/article/korea-haenyeo-world-ocean-day',
   T3: 'Gu X (ed.) (2026) <i>What are haenyeo? Udo, haenyeo culture and a mother’s love beneath the sea</i> [in Chinese], text by Ji-Sun Kim, photographs by Joon Choi, Marie Claire Taiwan, accessed 13 October 2026. https://www.marieclaire.com.tw/lifestyle/issue/20532',
   T4: 'Henderson E (2024) <i>A new generation of Haenyeo</i>, Erin Henderson, accessed 6 September 2026. https://www.erinhendersonmedia.com/blog/a-new-generation-of-haenyeo',
-  T5: 'Stevens L (2025) <i>Encounters with Haenyeo</i>, Monash University Arts News and Blog, accessed 31 August 2026. https://www.monash.edu/arts/monash-indigenous-studies/global-encounters-and-first-nations-peoples/news-and-blog/encounters-with-haenyeo'
+  T5: 'Stevens L (2025) <i>Encounters with Haenyeo</i>, Monash University Arts News and Blog, accessed 31 August 2026. https://www.monash.edu/arts/monash-indigenous-studies/global-encounters-and-first-nations-peoples/news-and-blog/encounters-with-haenyeo',
+  T6: 'Krüger L (2023) ‘There is no mercy!’: the young women swapping South Korea’s work culture for freediving, <i>The Guardian</i>, 20 June, accessed 13 October 2026. https://www.theguardian.com/environment/2023/jun/20/there-is-no-mercy-the-young-women-swapping-south-koreas-work-culture-for-freediving'
 };
 
 window.SITE = {
@@ -406,21 +407,61 @@ window.SITE = {
       id: 'continuation', num: '06',
       title: 'Different <i>Continuation</i>',
       short: 'Different Continuation',
-      kr: '다시', krGloss: 'dasi · again',
+      kr: '', krGloss: '',
       mood: 'acceptance',
       theme: { bg: '#0D3B4A', fg: '#F5F1EA', muted: '#A9C3C4', accent: '#E0703F' },
       tone: 'colour', sound: 'waves', volume: 0.55,
       modules: [
-        { type: 'opener', media: video(), subtitle: 'New choices, new pathways.' },
-        { type: 'portrait', media: img(PH.portrait),
-          quote: '[Add a quote from a new-generation haenyeo]',
-          cite: '[Source]' },
-        { type: 'spread', media: img(PH.landscape), side: 'right',
-          heading: 'A new generation',
-          lead: 'Younger apprentices are learning from senior divers.',
-          body: ['Some come from other careers and other cities. They wear modern wetsuits, share their dives on social media and sell their catch online.', 'The work looks different. The breath is the same.'],
-          caption: 'Placeholder · apprentice and senior diver' },
-        { type: 'film', media: video(), line: 'The sea is still here. So is the breath.', align: 'center', cue: 'sumbisori' }
+        // 06-1 · 06-1.avif (Meilin): older and younger haenyeo together at the harbour; colour returns here
+        // TODO: sources of 06-1, 06-3-1, 06-3-2, 06-4, 06-5, 06-6, 06-7 and ending.png
+        { type: 'opener', media: img('assets/img/ch06-open.jpg', 'Older and younger haenyeo in wetsuits smiling together at the harbour', ''),
+          subtitle: 'Not a rescue. A change still under way.' },
+        // 06-2 · a line Meilin found in a video's comments; no source found, so no reference
+        { type: 'text',
+          lead: 'The haenyeo’s “blues” is not an elegy, but a low, unbroken song of life.' },
+        // ── A · continuation in change ──
+        // 06-3 · two photos (06-3-1, 06-3-2)
+        { type: 'spread', side: 'left',
+          media: img('assets/img/ch06-dock.jpg', 'Two young haenyeo on a harbour pier with their nets and orange floats, one waving', ''),
+          media2: img('assets/img/ch06-shin.jpg', 'A young woman smiling on the pier, carrying a tub with her wetsuit', ''),
+          heading: 'Choosing the sea',
+          lead: 'Many of the older women began as girls, practising in the shallows. Some younger women come to the sea later, after other lives.', leadRef: 'T3 T6',
+          body: [
+            'The first haenyeo came from Jeju and spread along the whole coast. On Geoje Island, the older divers thought they would be the last. Then came the new recruits. Shin Ho-jin, from Seoul, studied literature and advertising and worked as a project manager in a high-rise office. In September 2021 she quit to dive.',
+            'For them, the sea was not the only way to live. They chose it. This is not a victory, only one way the culture may go on.',
+            '<span class="pull">“Korean work culture is very tough. There is no mercy! But in this community, it’s different.”</span>',
+            '<span class="cite">Shin Ho-jin, 37</span>'
+          ], bodyRef: 'T6' },
+        // 06-4 · 06-4.jpeg: an older haenyeo and a young diver
+        { type: 'spread', side: 'right',
+          media: img('assets/img/ch06-together.jpg', 'An older haenyeo and a young diver taking a selfie on the shore', ''),
+          heading: 'Passed on',
+          lead: 'On Jeju, knowledge is passed on in families, fishery cooperatives, the Haenyeo School and the Haenyeo Museum.', leadRef: 'T1',
+          body: [
+            'On Geoje, an academy now opens the work to women who were not born into it, always taught by local haenyeo. More than 100 have graduated, and 15 have become full-time divers. Some elders say you are not a haenyeo until you have worked three years.',
+            '<span class="pull">“The work we do is risky. There is no room for mistakes. But every day they become a little better. … We’re like family.”</span>',
+            '<span class="cite">Lee Bok-soon, 69, boat captain and haenyeo for more than 50 years</span>'
+          ], bodyRef: 'T6' },
+        // 06-5 · 06-5.webp: a young haenyeo on the pier with her net
+        { type: 'scene', heading: 'New ways of sharing',
+          lead: 'On Geoje, two younger divers, Sohee Jin and Jungmin Woo, take orders and post their catch on social media, and are opening an online shop.', ref: 'T4',
+          body: [
+            'Instead of giving the boat captain a share of the harvest, they pay a monthly fee and keep what they earn. They see diving as a bridge between their culture and the outside world.'
+          ], bodyRef: 'T4',
+          media: img('assets/img/ch06-share.jpg', 'A young haenyeo kneeling on the pier beside her net and orange float', '') },
+        // ── B · no conclusion ──
+        // 06-6 · 06-6.jpg: haenyeo of different ages on the rocks
+        { type: 'spread', side: 'left',
+          media: img('assets/img/ch06-rocks.jpg', 'Haenyeo of different ages standing together on the black rocks with their floats', ''),
+          heading: 'No ending yet',
+          lead: 'Outside stories often call them the last generation. The Haenyeo Museum tells another one: a strong, continuing culture, with an adaptive, resilient attitude to the future. What comes next remains unclear.', leadRef: 'T5 T4',
+          body: [
+            '<span class="pull">“It takes a lot of courage to dive. Since it’s a job with my life on the line, I have to be 100% sure about this.”</span>',
+            '<span class="cite">Hong Yong-joo, 36, who has just finished the introductory course</span>'
+          ], bodyRef: 'T6' },
+        // 06-7 · 06-7.webp: haenyeo walking down to the sea (Meilin's closing thought)
+        { type: 'film', media: img('assets/img/ch06-walk.jpg', 'Haenyeo walking down to the sea with orange floats and nets on their backs', ''),
+          line: 'A tradition can grow, change, or slowly become smaller. Its value was never only in whether it lasts.', align: 'left' }
       ]
     }
   ],
@@ -428,7 +469,8 @@ window.SITE = {
   /* ---------------- ENDING ---------------- */
   ending: {
     kr: '제주 해녀',
-    statement: 'Their future is not ours to decide. But what they carry — knowledge, strength, community and respect for the sea — can travel with us.',
+    statement: 'Their future is not ours to decide. We can understand their choices and respect them, and remember how they lived, worked and met the sea: taking only what is enough, and never alone.',
+    media: img('assets/img/ending.jpg', 'Two haenyeo walking through a field of yellow canola flowers by the sea', ''),
     loopLabel: 'Return to the surface',
     theme: { bg: '#111315', fg: '#E6E5E1', muted: '#8A8E90', accent: '#D8653B' },
     sound: 'waves', volume: 0.3,

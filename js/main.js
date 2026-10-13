@@ -304,7 +304,12 @@
 
   const E = S.ending;
   html += `
-    <section class="ending" id="ending" data-scene="ending">
+    <section class="ending${E.media ? ' ending--hero' : ''}" id="ending" data-scene="ending">
+      ${E.media ? `<div class="ending__hero">
+        <div class="ending__media">${media(E.media, 'media', false)}</div>
+        <div class="shade"></div>
+        ${refTag(E.media.ref)}
+      </div>` : ''}
       <div class="wrap">
         <p class="kr ending__kr">${E.kr}</p>
         <p class="ending__statement">${E.statement}</p>
@@ -694,6 +699,11 @@
   if (!REDUCED) {
     $$('[data-module]').forEach((el) => A[el.dataset.module] && A[el.dataset.module](el));
     /* landing: subtle drift of the title as you leave */
+    /* ending: the photo settles as it comes into view, the statement rises with it */
+    if ($('.ending__hero')) {
+      gsap.fromTo('.ending__media', { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.ending__hero', start: 'top bottom', end: 'bottom bottom', scrub: true } });
+      gsap.from('.ending--hero > .wrap > .ending__kr, .ending--hero > .wrap > .ending__statement', { y: 40, opacity: 0, stagger: .15, duration: 1.2, ease: 'power2.out', scrollTrigger: { trigger: '.ending--hero > .wrap', start: 'top 80%', toggleActions: 'play none none reverse' } });
+    }
     gsap.to('.landing__inner', { y: -180, opacity: 0, ease: 'none', scrollTrigger: { trigger: '.landing', start: 'top top', end: 'bottom top', scrub: true } });
   }
 
