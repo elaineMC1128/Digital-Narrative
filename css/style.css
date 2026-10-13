@@ -120,7 +120,7 @@ p { margin: 0 0 1em; }
 .progress span { display: block; height: 100%; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); }
 
 .chapnav {
-  position: fixed; right: var(--gutter); top: 50%; transform: translateY(-50%); z-index: 50;
+  position: fixed; right: 14px; top: 50%; transform: translateY(-50%); z-index: 50;   /* close to the edge so it clears the text (14 Oct) */
   display: flex; flex-direction: column; gap: 14px;
   opacity: 0; transition: opacity .8s var(--ease); pointer-events: none;
 }
@@ -138,7 +138,6 @@ p { margin: 0 0 1em; }
 .chapnav button:focus-visible .chapnav__label { opacity: 1; transform: none; }
 .chapnav button.is-active { color: var(--fg); }
 .chapnav button.is-active .chapnav__line { width: 34px; background: var(--accent); }
-.chapnav.is-hidden { opacity: 0; pointer-events: none; }
 
 /* =====================================================================
    LANDING
@@ -204,10 +203,9 @@ p { margin: 0 0 1em; }
 /* REVEAL: while a full-screen frame scrolls in, its footage is fixed to the screen and
    clipped to the frame (clip-path also clips fixed children), so the section above
    slides away and uncovers it; the text in the frame is carried up with the edge. */
-.is-revealing > .m-opener__media, .is-revealing > .m-film__media, .is-revealing > .m-depth__media, .is-revealing > .m-dive__media, .is-revealing > .m-scene__media { position: fixed; }
+.is-revealing > .m-opener__media, .is-revealing > .m-film__media, .is-revealing > .m-dive__media, .is-revealing > .m-scene__media { position: fixed; }
 /* after a pin GSAP leaves translate(0,0) on the frame, which would stop position: fixed from working */
-.m-opener.is-revealing, .m-film.is-revealing, .m-depth.is-revealing, .m-dive.is-revealing, .m-scene.is-revealing { transform: none !important; }
-.m-depth .ref-tag { left: auto; right: var(--gutter); bottom: 24px; }
+.m-opener.is-revealing, .m-film.is-revealing, .m-dive.is-revealing, .m-scene.is-revealing { transform: none !important; }
 .m-film__line {
   position: relative; width: 100%; max-width: var(--maxw); margin: 0 auto;
   padding: 0 var(--gutter) clamp(48px, 10vh, 120px);
@@ -327,10 +325,7 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
 .strip-item figcaption b { display: block; font: 500 clamp(18px, 1.6vw, 24px)/1.2 var(--f-serif); color: var(--fg); margin-bottom: 4px; letter-spacing: 0; }
 .strip-end { flex: 0 0 auto; width: 12vw; }
 
-/* --- F · depth --- */
-.m-depth { position: relative; height: 100vh; overflow: hidden; clip-path: inset(0); }
-.m-depth__media { position: absolute; inset: 0; will-change: transform; }
-.m-depth__water { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(6, 26, 33, .15), rgba(2, 10, 13, .96)); opacity: 0; }
+/* --- depth gauge (used by the 02 dive) --- */
 .gauge {
   position: absolute; left: var(--gutter); top: 14vh; bottom: 14vh; width: 90px;
   font: 400 12px/1 var(--f-display); letter-spacing: .08em; color: var(--muted);
@@ -342,11 +337,6 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
 .gauge__marker::before { content: ""; width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent); }
 .gauge__value { font: 500 clamp(40px, 5vw, 72px)/1 var(--f-display); font-variant-numeric: tabular-nums; }
 .gauge__value small { font-size: .35em; color: var(--accent); margin-left: 4px; }
-.depth-stops { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
-.depth-stop {
-  grid-area: 1 / 1; max-width: 22ch; margin: 0 var(--gutter) 0 calc(var(--gutter) + 180px);
-  font: 500 var(--t-line)/1.15 var(--f-serif); text-align: left; text-wrap: balance;
-}
 
 /* --- 02-2 → 02-4 · dive: one pinned screen, footage changes underneath, text moves --- */
 .m-dive { position: relative; z-index: 1; height: 100vh; overflow: hidden; clip-path: inset(0); }
@@ -404,7 +394,6 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
 .decline-count__labels span + span { opacity: 0; }
 .dots { display: grid; grid-template-columns: repeat(23, minmax(0, 1fr)); gap: clamp(4px, .6vw, 9px); }
 .dots i { aspect-ratio: 1; border-radius: 50%; background: var(--fg); }
-.dots i.is-kept { background: var(--fg); }
 .m-decline .caption { margin-top: 18px; grid-column: 2; }
 
 /* --- ending --- */
@@ -462,7 +451,6 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
   .strip-end { display: none; }
 
   .gauge { top: 18vh; bottom: 18vh; }
-  .depth-stop { margin-left: calc(var(--gutter) + 110px); font-size: 26px; }
   .gauge__value { font-size: 36px; }
   .m-decline__inner { grid-template-columns: 1fr; }
   .m-decline .caption { grid-column: 1; }
@@ -560,3 +548,21 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
 .ending__media { position: absolute; inset: 0; }
 .ending__hero .shade { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg) 0%, transparent 22%); }
 /* the photo is left clear; the closing words follow it on the dark page */
+
+/* --- 14 Oct: 02-5 photos all about the same size — landscape 3:2 and portrait 3:4 frames
+       of similar area, whatever the original shape; the ending's closing words over look.mp4 --- */
+.m-gallery .g-item { height: 38vh; width: 57vh; }            /* 3:2 */
+.m-gallery .g-item.is-tall { height: 50vh; width: 37.5vh; }   /* 3:4 */
+.m-gallery .g-item .media { width: 100%; height: 100%; object-fit: cover; }
+.m-gallery .g-item--0 { top: 14vh; } .m-gallery .g-item--1 { top: 40vh; } .m-gallery .g-item--2 { top: 20vh; } .m-gallery .g-item--3 { top: 44vh; }
+.ending__close { position: relative; }
+.ending__close.has-backdrop { min-height: 100vh; display: flex; align-items: center; overflow: hidden; margin-top: calc(-1 * clamp(40px, 8vh, 96px)); }
+.ending__backdrop { position: absolute; inset: 0; }
+.ending__dim { position: absolute; inset: 0; background: linear-gradient(to bottom, var(--bg) 0%, color-mix(in srgb, var(--bg) 40%, transparent) 25%, color-mix(in srgb, var(--bg) 40%, transparent) 75%, var(--bg) 100%), linear-gradient(to right, color-mix(in srgb, var(--bg) 70%, transparent), transparent 70%); }
+.ending__close.has-backdrop .wrap { position: relative; width: 100%; }
+.ending__close .ref-tag { left: auto; right: var(--gutter); bottom: 24px; }
+@media (max-width: 800px) {
+  .m-gallery .g-item { height: 20vh; width: 30vh; }
+  .m-gallery .g-item.is-tall { height: 26vh; width: 19.5vh; }
+  .m-gallery .g-item--0, .m-gallery .g-item--1, .m-gallery .g-item--2, .m-gallery .g-item--3 { top: 62vh; }
+}

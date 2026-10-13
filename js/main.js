@@ -70,7 +70,7 @@
 
     /* full-screen footage with a text block on the left; uncovered like the frames (03-2) */
     scene: (m) => `
-      <div class="m-scene${m.fit === 'contain' ? ' is-contain' : ''}" data-module="scene" ${m.duck ? `data-duck="${m.duck}"` : ''}>
+      <div class="m-scene${m.fit === 'contain' ? ' is-contain' : ''}" data-module="scene" ${m.duck ? `data-duck="${m.duck}"` : ''} ${m.voiceover ? `data-voiceover='${JSON.stringify(m.voiceover)}'` : ''} ${m.voice ? `data-voice="${m.voice}" data-voice-dip="${m.voiceDip || 0.6}"` : ''}>
         <div class="m-scene__media">${media(m.media, 'media', false)}</div>
         <div class="shade m-scene__shade"></div>
         ${refTag(m.media && m.media.ref)}
@@ -82,7 +82,7 @@
       </div>`,
 
     film: (m) => `
-      <div class="m-film align-${m.align || 'left'}" data-module="film" ${m.cue ? `data-cue="${m.cue}"` : ''}>
+      <div class="m-film align-${m.align || 'left'}" data-module="film" ${m.cue ? `data-cue="${m.cue}"` : ''} ${m.voice ? `data-voice="${m.voice}" data-voice-dip="${m.voiceDip || 0.6}"` : ''}>
         <div class="m-film__media">${media(m.media, 'media', false)}</div>
         <div class="shade"></div>
         <div class="veil"></div>
@@ -121,9 +121,6 @@
         <blockquote><p class="quote">${m.quote}</p><cite>${m.cite || ''}</cite></blockquote>
       </div>`,
 
-    facts: (m) => `
-      <div class="m-facts" data-module="facts">${factsInner(m)}</div>`,
-
     /* 02-2 → 02-4: one pinned screen; the footage changes underneath, only the text moves */
     dive: (m) => {
       const max = m.maxDepth || 30;
@@ -138,7 +135,7 @@
         return '';
       }).join('');
       return `
-      <div class="m-dive" data-module="dive" data-max="${max}">
+      <div class="m-dive" data-module="dive" data-max="${max}" ${m.ambience ? `data-ambience='${JSON.stringify(m.ambience)}'` : ''}>
         <div class="m-dive__media">${layers}<div class="m-dive__water"></div></div>
         <div class="gauge" aria-hidden="true">
           <div class="gauge__scale">${ticks.join('')}</div>
@@ -152,7 +149,7 @@
     gallery: (m) => `
       <div class="m-gallery" data-module="gallery" data-angle="${m.angle || 30}">
         <div class="m-gallery__stage">
-          <div class="m-gallery__track">${(m.images || []).map((im, i) => `<figure class="g-item g-item--${i % 4}">${media(im)}</figure>`).join('')}</div>
+          <div class="m-gallery__track">${(m.images || []).map((im, i) => `<figure class="g-item g-item--${i % 4}${im.tall ? ' is-tall' : ''}">${media(im)}</figure>`).join('')}</div>
           <div class="m-gallery__fade"></div>
           <div class="m-gallery__text">
             ${m.heading ? `<h3 class="section-h">${m.heading}</h3>` : ''}
@@ -208,25 +205,6 @@
         </div>
         <div class="h-progress"><span></span></div>
       </div>`,
-
-    depth: (m) => {
-      const max = m.maxDepth || 30;
-      const ticks = [];
-      for (let d = 0; d <= max; d += 5) ticks.push(`<span class="gauge__tick" style="top:${(d / max) * 100}%">${d}</span>`);
-      return `
-      <div class="m-depth" data-module="depth" data-max="${max}">
-        <div class="m-depth__media">${media(m.media, 'media', false)}</div>
-        <div class="m-depth__water"></div>
-        ${refTag(m.media && m.media.ref)}
-        <div class="gauge" aria-hidden="true">
-          <div class="gauge__scale">${ticks.join('')}</div>
-          <div class="gauge__marker"><span class="gauge__value"><b>0</b><small>m</small></span></div>
-        </div>
-        <div class="depth-stops">
-          ${m.stops.map((s) => `<p class="depth-stop" data-depth="${s.depth}">${s.text}</p>`).join('')}
-        </div>
-      </div>`;
-    },
 
     decline: (m) => {
       const total = Math.round(m.from / m.perDot);
@@ -310,10 +288,15 @@
         <div class="shade"></div>
         ${refTag(E.media.ref)}
       </div>` : ''}
+      <div class="ending__close${E.backdrop ? ' has-backdrop' : ''}">
+        ${E.backdrop ? `<div class="ending__backdrop">${media(E.backdrop, 'media', false)}<div class="ending__dim"></div></div>${refTag(E.backdrop.ref)}` : ''}
+        <div class="wrap">
+          <p class="kr ending__kr">${E.kr}</p>
+          <p class="ending__statement">${E.statement}</p>
+          <button class="btn btn--ghost" type="button" data-loop>↑ ${E.loopLabel}</button>
+        </div>
+      </div>
       <div class="wrap">
-        <p class="kr ending__kr">${E.kr}</p>
-        <p class="ending__statement">${E.statement}</p>
-        <button class="btn btn--ghost" type="button" data-loop>↑ ${E.loopLabel}</button>
         <div class="ending__grid">
           <dl class="credits">${E.credits.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
           <div id="references"><p class="eyebrow" style="margin-bottom:14px">References</p>${buildReferences()}</div>
@@ -358,7 +341,14 @@
   const navBtns = $$('.chapnav button');
   const nowNum = $('.topbar__num');
   const nowName = $('.topbar__name');
+  /* a stretch inside a chapter with its own bed (02-2 → end of 02: under water) */
+  /* a chapter's bed can be replaced part-way through (02: under water from 02-2; 04: the music after the voices) */
+  const override = {};
+  let activeScene = null;
+  let stopVoiceover = null;   // set while a module's voice track plays (04-3)
   function activate(scene) {
+    activeScene = scene === 'landing' || scene === 'ending' ? scene : +scene;
+    if (stopVoiceover) stopVoiceover(activeScene);
     if (scene === 'landing') {
       setTheme(L.theme); Sound.setScene(L.sound, 0.6);
       navBtns.forEach((b) => b.classList.remove('is-active'));
@@ -369,7 +359,10 @@
       nowNum.textContent = ''; nowName.textContent = 'Credits';
     } else {
       const ch = S.chapters[scene];
-      setTheme(ch.theme); Sound.setScene(ch.sound, ch.volume ?? 0.5);
+      setTheme(ch.theme);
+      const o = override[+scene];
+      if (o) Sound.setScene(o.key, o.vol);
+      else Sound.setScene(ch.sound, ch.volume ?? 0.5);
       navBtns.forEach((b, i) => b.classList.toggle('is-active', i === +scene));
       nowNum.textContent = ch.num; nowName.textContent = ch.short;
     }
@@ -407,6 +400,13 @@
      screen (see .is-revealing in style.css), so the section above slides away
      like a turned page and uncovers it. Then the frame is pinned, and finally
      slides away itself, with its footage, to uncover the next one. */
+  /* footage that keeps its own sound (01-2, 03-2, 03-5): heard only while on screen, the bed dips under it */
+  const voice = (el) => {
+    if (!el.dataset.voice) return;
+    const vid = $('video', el);
+    ScrollTrigger.create({ trigger: el, start: 'top 60%', end: 'bottom 40%',
+      onToggle: (self) => self.isActive ? Sound.voiceOn(vid, +el.dataset.voice, +el.dataset.voiceDip) : Sound.voiceOff(vid) });
+  };
   const reveal = (el) => ScrollTrigger.create({ trigger: el, start: 'top bottom', end: 'top top', toggleClass: 'is-revealing' });
 
   /* PARALLAX for editorial blocks: one layer moves faster than another */
@@ -456,6 +456,7 @@
         ScrollTrigger.create({ trigger: el, start: 'top 60%', end: 'bottom 40%',
           onToggle: (self) => Sound.duck(self.isActive ? +el.dataset.duck : 1) });
       }
+      voice(el);
       reveal(el);
     },
 
@@ -464,6 +465,8 @@
       const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top top', end: '+=100%', pin: true, scrub: true } })
         .fromTo($('.m-film__media', el), { scale: 1.1 }, { scale: 1, ease: 'none', duration: 1 }, 0)
         .fromTo(words, { opacity: .1 }, { opacity: 1, stagger: .05, duration: .2, ease: 'none' }, .05);
+      /* footage that keeps its own sound (01-2): heard only while on screen, blended with the ambience */
+      voice(el);
       /* sound cue lands as the last word of the line appears (scrolling down only) */
       if (el.dataset.cue) {
         const at = Math.min(.9, .05 + words.length * .05 + .15);
@@ -509,33 +512,6 @@
       fadeUp($('cite', el), el, 'top 40%');
     },
 
-    facts(el) {
-      const items = $$('.fact', el);
-      gsap.from(items, { opacity: 0, y: 40, duration: 1, stagger: .15, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 70%', toggleActions: 'play none none reverse' } });
-      /* count up numbers like "≈10", "3", "<100", "+2" */
-      $$('.num', el).forEach((n) => {
-        const m = n.textContent.match(/^([^\d]*)([\d,.]+)(.*)$/);
-        if (!m) return;
-        const [, pre, numStr, post] = m;
-        const target = parseFloat(numStr.replace(/,/g, ''));
-        const obj = { v: 0 };
-        gsap.to(obj, {
-          v: target, duration: 1.8, ease: 'power2.out',
-          scrollTrigger: { trigger: el, start: 'top 70%', toggleActions: 'play none none reverse' },
-          onUpdate: () => { n.textContent = pre + Math.round(obj.v).toLocaleString('en-US') + post; }
-        });
-      });
-      const rhythm = $('.rhythm', el);
-      if (rhythm) {
-        const lis = $$('li', rhythm);
-        ScrollTrigger.create({
-          trigger: rhythm, start: 'top 85%', end: 'bottom 45%',
-          onUpdate: (self) => { const k = Math.ceil(self.progress * lis.length); lis.forEach((li, i) => li.classList.toggle('is-on', i < k)); }
-        });
-      }
-    },
-
-    /* 02-2 → 02-4 on one pinned screen. Units of the timeline = one screen height of scrolling. */
     dive(el) {
       const vh = () => window.innerHeight;
       const layers = $$('.m-dive__layer', el);
@@ -648,30 +624,6 @@
       fadeUp($$('.panel__text > *, .panel blockquote, .strip-head > *', el).slice(0, 4), el, 'top 60%');
     },
 
-    depth(el) {
-      const max = +el.dataset.max;
-      const marker = $('.gauge__marker', el);
-      const value = $('.gauge__value b', el);
-      const stops = $$('.depth-stop', el);
-      const pos = (s) => (+s.dataset.depth / max) * 0.92;
-      const tl = gsap.timeline({
-        scrollTrigger: { trigger: el, start: 'top top', end: '+=' + (stops.length * 70) + '%', pin: true, scrub: true },
-        onUpdate() { value.textContent = Math.min(max, Math.round((tl.progress() / 0.92) * max)); }
-      });
-      tl.fromTo(marker, { top: '0%' }, { top: '100%', ease: 'none', duration: .92 }, 0)
-        .fromTo($('.m-depth__water', el), { opacity: 0 }, { opacity: .92, ease: 'none', duration: .92 }, 0)
-        .fromTo($('.m-depth__media', el), { scale: 1 }, { scale: 1.35, ease: 'none', duration: .92 }, 0)
-        .to({}, { duration: .08 });
-      gsap.set(stops, { opacity: 0, y: 30 });
-      stops.forEach((s, i) => {
-        const at = pos(s);
-        tl.to(s, { opacity: 1, y: 0, duration: .05, ease: 'power2.out' }, Math.max(0, at - (i === 0 ? 0 : .03)));
-        const next = stops[i + 1];
-        if (next) tl.to(s, { opacity: 0, y: -30, duration: .04, ease: 'power2.in' }, pos(next) - .06);
-      });
-      reveal(el);
-    },
-
     decline(el) {
       const from = +el.dataset.from, to = +el.dataset.to, per = +el.dataset.per;
       const dots = $$('.dots i', el);
@@ -702,13 +654,62 @@
     /* ending: the photo settles as it comes into view, the statement rises with it */
     if ($('.ending__hero')) {
       gsap.fromTo('.ending__media', { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.ending__hero', start: 'top bottom', end: 'bottom bottom', scrub: true } });
-      gsap.from('.ending--hero > .wrap > .ending__kr, .ending--hero > .wrap > .ending__statement', { y: 40, opacity: 0, stagger: .15, duration: 1.2, ease: 'power2.out', scrollTrigger: { trigger: '.ending--hero > .wrap', start: 'top 80%', toggleActions: 'play none none reverse' } });
+      gsap.from('.ending__close .ending__kr, .ending__close .ending__statement', { y: 40, opacity: 0, stagger: .15, duration: 1.2, ease: 'power2.out', scrollTrigger: { trigger: '.ending__close', start: 'top 70%', toggleActions: 'play none none reverse' } });
     }
     gsap.to('.landing__inner', { y: -180, opacity: 0, ease: 'none', scrollTrigger: { trigger: '.landing', start: 'top top', end: 'bottom top', scrub: true } });
   }
 
   /* progress bar */
   gsap.to('.progress span', { scaleX: 1, ease: 'none', scrollTrigger: { start: 0, end: 'max', scrub: true } });
+
+  /* sound zones (02): the cue sounds only while the module rises over the screen before it;
+     once the module fills the screen the cue stops and the module's own bed starts, lasting to the end of the chapter */
+  $$('[data-ambience]').forEach((el) => {
+    const a = JSON.parse(el.dataset.ambience);
+    const ch = +el.closest('[data-scene]').dataset.scene;
+    const chapter = S.chapters[ch];
+    let cue = null;
+    const later = (fn) => setTimeout(() => { if (activeScene === ch) fn(); }, 60);   // ignore long jumps that land elsewhere
+    /* the switch begins: plunge, the previous bed fades fast */
+    ScrollTrigger.create({ trigger: el, start: 'top bottom',
+      onEnter: () => later(() => { Sound.silence(900); Sound.stop(cue, 100); cue = Sound.cue(a.cue, a.cueVol || 0.85, 250); }),
+      onLeaveBack: () => { Sound.stop(cue, 700); cue = null; if (activeScene === ch) Sound.setScene(chapter.sound, chapter.volume ?? 0.5); } });
+    /* the module fills the screen: plunge stops, the new bed starts */
+    ScrollTrigger.create({ trigger: el, start: 'top top',
+      onEnter: () => { Sound.stop(cue, 700); cue = null; override[ch] = { key: a.key, vol: a.vol }; later(() => Sound.setScene(a.key, a.vol, { in: 1500 })); },
+      onLeaveBack: () => { delete override[ch]; if (activeScene === ch) Sound.silence(900); } });
+  });
+
+  /* a voice track that starts with a module and plays once (04-3: 04.wav).
+     When its music section begins the chapter bed fades away; near its end the track hands over
+     to a looping bed made from that music, which then lasts to the end of the chapter. */
+  $$('[data-voiceover]').forEach((el) => {
+    const v = JSON.parse(el.dataset.voiceover);
+    const ch = +el.closest('[data-scene]').dataset.scene;
+    let done = false;
+    ScrollTrigger.create({ trigger: el, start: 'top 60%', onEnter: () => setTimeout(() => {
+      if (done || activeScene !== ch || !Sound.isEnabled()) return;
+      done = true;
+      const h = Sound.cue(v.key, v.vol, 1500);
+      if (!h) return;
+      let bedGone = false;
+      const watch = setInterval(() => {
+        const t = h.seek();
+        if (typeof t !== 'number') return;
+        if (!bedGone && t >= v.bedOutAt) { bedGone = true; Sound.silence(5000); }
+        if (t >= v.tailAt) {
+          clearInterval(watch); stopVoiceover = null;
+          override[ch] = { key: v.tail, vol: v.tailVol || v.vol };
+          Sound.setScene(v.tail, v.tailVol || v.vol, { in: 4000 });
+        }
+      }, 250);
+      stopVoiceover = (scene) => {
+        if (scene === ch) return;
+        clearInterval(watch); stopVoiceover = null;
+        Sound.stop(h, 2500);
+      };
+    }, 60) });
+  });
 
   /* scene triggers — created last so pinned spacing is already measured */
   $$('[data-scene]').forEach((sec) => {
@@ -723,10 +724,12 @@
      =================================================================== */
   const io = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
-      if (e.isIntersecting) e.target.play().catch(() => {});
+      if (e.isIntersecting) { if (!(e.target.dataset.once && e.target.ended)) e.target.play().catch(() => {}); }
       else e.target.pause();
     });
   }, { threshold: 0.05 });
+  /* the ending's video plays once and stays on its last frame */
+  $$('.ending__backdrop video').forEach((v) => { v.loop = false; v.removeAttribute('loop'); v.dataset.once = '1'; });
   $$('video').forEach((v) => io.observe(v));
 
   /* ===================================================================

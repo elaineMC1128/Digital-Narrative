@@ -47,10 +47,10 @@ chen_s4151128_ass3/
 
 ```js
 // 图片：img(路径, 替代文字, 出处)
-media: img('assets/img/bulteok.webp', 'Divers resting at the bulteok', 'Photo · Name, 2020')
+media: img('assets/img/bulteok.webp', 'Divers resting at the bulteok', 'P1')
 
 // 视频：video(路径, 封面图, 替代文字, 出处)
-media: video('assets/video/surface.mp4', 'assets/img/surface-poster.jpg', 'A diver surfaces', 'Film · Title, year')
+media: video('assets/video/surface.mp4', 'assets/img/surface-poster.jpg', 'A diver surfaces', 'F1')   // F1 = reference code in REFERENCES
 ```
 
 ### 引用编号（参考文献）
@@ -79,16 +79,17 @@ media: video('assets/video/surface.mp4', 'assets/img/surface-poster.jpg', 'A div
 
 | 模块 | type | 用途 |
 |---|---|---|
-| G 章节开篇 | `opener` | 编号 + 标题 + 韩文 + 氛围画面 |
+| G 章节开篇 | `opener` | 编号 + 标题 + 氛围画面（`kr` 留空时不显示韩文行） |
 | A 电影画面 | `film` | 全屏视频/照片 + 一句话，可加 `cue: 'sumbisori'` 播放哨声 |
 | 文字段落 | `text` | 标题 + 导语 + 正文 |
 | B 杂志跨页 | `spread` | 图片 + 分栏文字，`side: 'left'/'right'` 决定图片在哪边 |
 | 横向杂志页 | `horizontal` | 纵向滚动时画面横向移动（第 03 章） |
 | C 横向照片带 | `strip` | 连续照片 + 说明（第 04 章） |
 | D 人像 + 引语 | `portrait` | 一个人、一句话 |
-| E 数据卡 | `facts` | 大数字会自动从 0 数上去；`rhythm` 是下潜节奏条 |
-| F 下潜深度 | `depth` | 画面固定，滚动时深度计从 0 m 下降到 30 m |
-| F 人数递减 | `decline` | 画面固定，滚动时 23,000 → 3,500，圆点逐渐消失 |
+| 全屏场景 | `scene` | 全屏视频/照片 + 左侧文字；`fit: 'contain'` 时画面不裁切（05-7） |
+| 下潜 | `dive` | 02 章：一个固定画面，底下的视频依次切换，深度计、数据卡和下潜节奏条随滚动出现 |
+| 斜切照片页 | `gallery` | 02-5：斜边页面升起，照片从右向左经过文字下方 |
+| F 人数递减 | `decline` | 画面固定，滚动时 4,500 → 2,839，圆点逐渐消失（05-3） |
 
 ---
 

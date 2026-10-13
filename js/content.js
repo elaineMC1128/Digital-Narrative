@@ -7,9 +7,9 @@
    HOW TO…
    • Change text ............ edit the strings below. Use <i>…</i> for italic,
                               <br> for a line break.
-   • Replace a placeholder .. put your file in assets/img or assets/video,
+   • Replace a photo/video .. put your file in assets/img or assets/video,
                               then change the path, e.g.
-                              img('assets/img/bulteok.webp', 'Divers at the bulteok')
+                              img('assets/img/bulteok.jpg', 'Divers at the bulteok')
    • Reorder a chapter ...... move the { type: … } blocks inside "modules".
    • Change chapter colours . edit "theme" (bg = background, fg = text,
                               muted = secondary text, accent = highlights).
@@ -23,41 +23,37 @@
      horizontal   magazine pages that move sideways (spread/portrait/image panels)
      strip     C  horizontal photo sequence with captions
      portrait  D  portrait + quote
-     facts     E  big numbers / words
-     depth     F  pinned dive: depth gauge moves with scroll
+     scene        full-screen footage with a text block on the left
+     dive         02: one pinned screen, footage changes underneath (depth gauge, numbers)
+     gallery      02-5: slanted page, photos pass under the text
      decline   F  pinned dot field: 4,500 → 2,839
 
    ALL TEXT BELOW IS DRAFT COPY based on the A2 research — rewrite freely.
    ===================================================================== */
 
 /* ---------- media helpers (keep these) ---------- */
-const PH = {
-  video:     'assets/video/placeholder-16x9.mp4',
-  poster:    'assets/img/placeholder-video-poster.jpg',
-  wide:      'assets/img/placeholder-wide.jpg',
-  landscape: 'assets/img/placeholder-landscape.jpg',
-  portrait:  'assets/img/placeholder-portrait.jpg',
-  square:    'assets/img/placeholder-square.jpg'
-};
 /* video(src, poster, alt, ref) — muted, looping, autoplays when on screen.
    ref = reference code shown on the media (e.g. 'F2'); it links to the
    matching entry in REFERENCES below. Leave '' if the source is not known yet. */
-const video = (src = PH.video, poster = PH.poster, alt = '', ref = '') =>
+const video = (src, poster, alt = '', ref = '') =>
   ({ type: 'video', src, poster, alt, ref });
 /* img(src, alt, ref) */
-const img = (src = PH.wide, alt = '', ref = '') =>
+const img = (src, alt = '', ref = '') =>
   ({ type: 'image', src, alt, ref });
 
 /* ---------- sounds: key → file ---------- */
 const SOUNDS = {
-  waves:       'assets/audio/waves.mp3',        // PLACEHOLDER — replace with real sea ambience
-  underwater:  'assets/audio/underwater.mp3',   // PLACEHOLDER
-  warm:        'assets/audio/warm-drone.mp3',   // PLACEHOLDER — voices / intimate sound
-  music:       'assets/audio/music.mp3',        // PLACEHOLDER — documentary score
-  quiet:       'assets/audio/near-silence.mp3', // PLACEHOLDER — thin wind
-  sumbisori:   'assets/audio/sumbisori.mp3',    // REAL — cut from F2 (Lessons from Jeju), 0–3.6 s
-  chorus:      'assets/audio/sumbisori-chorus.mp3', // made from the sumbisori: 4 layers offset in time, pitch and pan (not used at the moment)
-  whistle:     'assets/audio/sumbisori-whistle.mp3' // the original whistle effect, used for 01-2
+  waves:       'assets/audio/waves.mp3',        // original bed: landing, 01, ending
+  underwater:  'assets/audio/underwater.mp3',   // original bed: 02-1
+  warm:        'assets/audio/warm-drone.mp3',   // original bed: 03 (a little louder since 14 Oct)
+  plunge:      'assets/audio/plunge.mp3',       // 02-1.wav (Meilin) from 2.3 s: only the moment 02-1 turns into 02-2
+  deep:        'assets/audio/deep.mp3',         // under water.mp3 (Meilin), 60–120 s: from 02-2 to the end of 02
+  pad04:       'assets/audio/pad04.mp3',        // the light cine pad (samuelfjohanns), looped: 04 background, kept low
+  voices04:    'assets/audio/voices04.mp3',     // 04.wav (Meilin), 0–96 s: played once from 04-3, fading out at the end
+  tail04:      'assets/audio/music04-tail.mp3', // 04.wav 72–98 s, looped: its music carries on to the end of 04
+  music05:     'assets/audio/music05.mp3',      // 05.mp3 (Meilin), 0.5–46.5 s, looped: 05
+  drift:       'assets/audio/drift.mp3',        // 05.wav (Meilin), 0–53 s: 06 and on through the ending, one continuous bed
+  sumbisori:   'assets/audio/sumbisori.mp3'     // REAL — cut from F2 (Lessons from Jeju), 0–3.6 s; plays on the loop back to the surface
 };
 
 /* ---------- references: one entry per source (RMIT Harvard) ----------
@@ -112,12 +108,14 @@ window.SITE = {
       theme: { bg: '#0B2A35', fg: '#F2EFE9', muted: '#9DB3B8', accent: '#D8653B' },
       tone: 'colour', sound: 'waves', volume: 0.6,
       modules: [
-        // up.mp4 (F1, Daughter of the Sea) 0–8 s
-        { type: 'opener', media: video('assets/video/ch01-surface.mp4', 'assets/img/ch01-surface-poster.jpg', 'Camera rising from under the water as a haenyeo surfaces', 'F1'),
+        // 01-1 · Sumbisori.mp4 (Lessons from Jeju) 0–7.6 s: a diver beside her tewak, then a close-up as she breathes (was 01-2; moved here 14 Oct)
+        { type: 'opener', media: video('assets/video/ch01-float.mp4', 'assets/img/ch01-float-poster.jpg', 'A haenyeo surfacing beside her orange tewak float', 'F2'),
           subtitle: 'Before you see them, you hear them.' },
-        // Sumbisori.mp4 (Lessons from Jeju) 0–7.6 s: a diver beside her tewak, then a close-up as she breathes
-        { type: 'film', media: video('assets/video/ch01-float.mp4', 'assets/img/ch01-float-poster.jpg', 'A haenyeo surfacing beside her orange tewak float', 'F2'),
-          line: 'A float bobs on the water. Then, a sharp whistle.', align: 'left', cue: 'whistle' },
+        // 01-2 · 01-2.mp4 (Meilin, 14 Oct): floats on a choppy sea, divers surfacing among them.
+        // Plays with its own sound (sea + two real sumbisori whistles, levelled and faded at the loop);
+        // the chapter ambience dips while it plays, so the two blend. voice = its volume.
+        { type: 'film', media: video('assets/video/ch01-breath.mp4', 'assets/img/ch01-breath-poster.jpg', 'Orange floats on a choppy sea as haenyeo surface among them, Jeju city on the horizon', ''),
+          line: 'A float bobs on the water. Then, a sharp whistle.', align: 'left', voice: 0.8, voiceDip: 0.4 },
         { type: 'text',
           heading: 'Sumbisori',
           lead: 'When a haenyeo surfaces after a dive, she lets out the air she has held in one long, high whistle.',
@@ -126,7 +124,7 @@ window.SITE = {
             'For generations along Jeju’s coast, this sound has marked the work of women who harvest the sea without oxygen tanks.'
           ],
           ref: 'T1',
-          media: img('assets/img/ch01-mask.jpg', 'Close-up of a haenyeo in her mask beside an orange tewak', 'F2'),
+          media: img('assets/img/ch01-face.jpg', 'Close-up of a haenyeo at the surface, breathing out through her mask', ''),   // 01-3.png (Meilin, 14 Oct)
           duck: 0.5 },
         // 2.mp4 (F1, Daughter of the Sea) 4.5–14 s
         { type: 'film', media: video('assets/video/ch01-group.mp4', 'assets/img/ch01-group-poster.jpg', 'Several haenyeo and their orange floats spread across a glittering sea', 'F1'),
@@ -149,7 +147,10 @@ window.SITE = {
           subtitle: 'Work, knowledge and the cost of every dive.' },
         // 02-2 → 02-4 as ONE pinned screen ('dive'): the footage stays on screen and changes
         // underneath (descent → seabed → picking), only the text moves through it.
+        // sound: the plunge (02-1.wav) sounds only while this screen rises over 02-1; the moment 02-2
+        // fills the screen it stops and under water.mp3 starts, lasting to the end of 02
         { type: 'dive', maxDepth: 30,
+          ambience: { key: 'deep', vol: 0.55, cue: 'plunge', cueVol: 0.9 },
           scenes: [
             // 02-2 · 2-2.mp4 0–18.6 s: seen from below, a diver descends away from the sunlit surface
             { media: video('assets/video/ch02-descent.mp4', 'assets/img/ch02-descent-poster.jpg', 'Seen from below, a diver descends away from the sunlit surface', 'F1'),
@@ -184,10 +185,10 @@ window.SITE = {
             'The risks are real. Freezing water, strong tides and swells, discarded fishing nets and passing boats. Each dive is measured against her own breath.'
           ],
           images: [
+            { ...img('assets/img/ch02-gear.jpg', 'A haenyeo’s wetsuit, hood, socks, weight belt and fins laid out in a museum display', ''), tall: true },   // work.jpg (Meilin, 14 Oct)
             img('assets/img/ch02-carry-1.jpg', 'Haenyeo on the rocks, sorting their nets and orange tewak', 'P1'),   // The Haenyo of Jeju — SOOK.jpg
-            img('assets/img/ch02-carry-2.jpg', 'Underwater, a haenyeo reaches into the rocks beside her net', 'P2'), // 4.webp
-            img('assets/img/ch02-carry-5.jpg', 'Underwater, a haenyeo in a mask looks up beside her full net', 'P3'),          // Jeju Haenyeo.png
-            img('assets/img/ch02-carry-3.jpg', 'Black-and-white photo of haenyeo climbing back onto a boat with their catch', 'P4')  // Bitchang of abalone harvested.png (stops on the right)
+            { ...img('assets/img/ch02-carry-2.jpg', 'Underwater, a haenyeo reaches into the rocks beside her net', 'P2'), tall: true }, // 4.webp
+            img('assets/img/ch02-carry-5.jpg', 'Underwater, a haenyeo in a mask looks up beside her full net', 'P3')           // Jeju Haenyeo.png (stops on the right)
           ] }
       ]
     },
@@ -199,7 +200,7 @@ window.SITE = {
       kr: '어머니', krGloss: 'eomeoni · mother',
       mood: 'empathy',
       theme: { bg: '#E8DFCC', fg: '#2B2E31', muted: '#6E675A', accent: '#B4532F' },
-      tone: 'colour', sound: 'warm', volume: 0.45,
+      tone: 'colour', sound: 'warm', volume: 0.55,
       modules: [
         // Two linked angles (Meilin, 12 Oct): A. Motherhood, family and sacrifice · B. Labour, independence and pride.
         // "Motherhood explains what they worked for. Independence explains what the work gave back."
@@ -216,7 +217,8 @@ window.SITE = {
             'They dived to feed and raise their children, and to give the next generation more choices than they had.',
             'The photographer Joon Choi saw what held them to such hard work: without a strong maternal instinct, he said, they could not have raised their children.'
           ], bodyRef: 'T3',
-          media: video('assets/video/ch03-scene.mp4', 'assets/img/ch03-scene-poster.jpg', 'Haenyeo mending nets and working on the rocks by the sea', 'F2'), duck: 0.5 },
+          media: video('assets/video/ch03-scene.mp4', 'assets/img/ch03-scene-poster.jpg', 'Haenyeo mending nets and working on the rocks by the sea', 'F2'),
+          voice: 0.42, voiceDip: 0.85 },   // plays its own sound, a little above the sea (Meilin, 14 Oct)
         // the haenyeo's own words; pages move sideways
         { type: 'horizontal', panels: [
           // 03-3-1.mp4 (Meilin's cut from F2)
@@ -247,7 +249,8 @@ window.SITE = {
           ], bodyRef: 'T1', duck: 0.5 },
         // 614–627.5 s: the haenyeo who says these words, cropped above the film's subtitles
         { type: 'film', media: video('assets/video/ch03-freedom.mp4', 'assets/img/ch03-freedom-poster.jpg', 'Two older haenyeo talking at the table', 'F2'),
-          line: '“But now, I can make money and I have freedom.”', align: 'left' },
+          line: '“But now, I can make money and I have freedom.”', align: 'left',
+          voice: 0.42, voiceDip: 0.85 },   // her own voice, a little above the sea (Meilin, 14 Oct)
         // 705–707.5 s at 70 %: portrait of a haenyeo on the shore, mask on her forehead
         { type: 'portrait', media: video('assets/video/ch03-proud.mp4', 'assets/img/ch03-proud-poster.jpg', 'Portrait of a haenyeo on the shore, her mask pushed up on her forehead', 'F2'),
           quote: 'Wherever I go, I tell people I’m Haenyeo proudly!',
@@ -269,7 +272,7 @@ window.SITE = {
       kr: '', krGloss: '',
       mood: 'admiration',
       theme: { bg: '#EEF3F1', fg: '#15302F', muted: '#5E7875', accent: '#3F7E77' },
-      tone: 'colour', sound: 'music', volume: 0.5,
+      tone: 'colour', sound: 'pad04', volume: 0.3,
       modules: [
         // 04-1 · 04-1.mp4 (Meilin's cut from F2): haenyeo on the boat, then a portrait
         { type: 'opener', media: video('assets/video/ch04-open.mp4', 'assets/img/ch04-open-poster.jpg', 'Haenyeo heading out on the boat, then a portrait of one of them', 'F2'),
@@ -280,7 +283,11 @@ window.SITE = {
 
         // ── A · their beauty ──
         // 04-3 · 04-3.mp4 (Meilin's cut from F2): a haenyeo surfaces holding up her catch
+        // sound: 04.wav starts here and plays once (a little softer than before). At 60 s, where its music
+        // begins, the pad fades away; at 92 s the track fades into a loop of its own music (72–98 s),
+        // which carries on to the end of 04.
         { type: 'scene', heading: 'What is beautiful?',
+          voiceover: { key: 'voices04', vol: 0.75, bedOutAt: 60, tail: 'tail04', tailAt: 91.5 },
           lead: 'Photographer Joon Choi asked a haenyeo what was the most beautiful sight of her sixty years at sea. She thought for a long time, then said: “When I see a pile of shellfish.”', ref: 'T3',
           body: [
             'Her answer was not an abstract idea of beauty, but the plainest picture of a real life.',
@@ -305,22 +312,22 @@ window.SITE = {
               title: 'Love for life', caption: 'Facing the sea’s risks every day, they still greet a stranger with a gentle smile.', ref: 'T3' },
             { media: img('assets/img/ch02-carry-1.jpg', 'Haenyeo on the rocks, sorting their nets and orange tewak', 'P1'),
               title: 'Honesty and simplicity', caption: 'Quiet and calm, with the composure of people who have lived close to danger.', ref: 'T3' },
-            { media: img('assets/img/ch04-q7-knowledge.jpg', 'Haenyeo on the rocks with their nets and orange tewak, a diver standing above them', ''),
+            { media: img('assets/img/ch04-q7-knowledge.jpg', 'Underwater, two haenyeo dive along a rocky reef below the bright surface', ''),
               title: 'Knowledge shaped by experience', caption: 'They know this sea inside out: what is in season, and what is not.', ref: 'T2' },
             { media: img('assets/img/ch04-q8-nature.jpg', 'Aerial view of a single haenyeo diving over a green reef', ''),
               title: 'Respect for nature', caption: '“Catching food by hand underwater teaches you to respect the sea.”', ref: 'T2' },
             { media: img('assets/img/ch04-q9-enough.jpg', 'Two haenyeo walking back across the rocks at low tide, carrying their catch', ''),
               title: 'Knowing when to take and when to stop', caption: 'They know how to strive, and when to let go.', ref: 'T3' }
           ] },
-        // 04-5 · living with the sea (ch03-shore: 684.25–685.8 s of F2 at 50 %)
-        { type: 'spread', media: video('assets/video/ch03-shore.mp4', 'assets/img/ch03-shore-poster.jpg', 'Haenyeo resting together on the volcanic rocks', 'F2'), side: 'left',
+        // 04-5 · living with the sea (pray.mp4, Meilin 14 Oct: from the Apple TV trailer, F4; slowed to 50 %)
+        { type: 'spread', media: video('assets/video/ch04-pray.mp4', 'assets/img/ch04-pray-poster.jpg', 'An older haenyeo by the sea, her hands pressed together in prayer', 'F4'), side: 'left',
           heading: 'Living with the sea',
           lead: 'They do not try to conquer nature. They try to understand it, adapt to it, and live alongside it.', leadRef: 'T3',
           body: [
             'Before they dive, they pray for their safety and for the sea’s bounty.',
             'At the bulteok, the stone shelter by the shore, they share what they know about the sea.'
           ], bodyRef: 'T5 T1' },
-        // 04-6 · only what is enough (ch04-conch: 496–500.2 s of F2)
+        // 04-6 · only what is enough (04-6.mp4, Meilin 14 Oct; the black first 0.4 s trimmed)
         { type: 'text', heading: 'Only what is enough',
           lead: 'Working together, the haenyeo see overfishing as one of the greatest threats to the sea. So they take only what they truly need.', ref: 'T2',
           body: [
@@ -328,7 +335,7 @@ window.SITE = {
             '<span class="cite">Kimi Werner, freediver, in <i>Vogue Taiwan</i> (Chan &amp; Ku 2020), translated from Chinese</span>',
             'Elsewhere, the old ways of catching food by hand are giving way to machines built for the greatest profit. Werner calls it a great loss: of a valuable culture, and of the health of the planet.'
           ], bodyRef: 'T2',
-          media: video('assets/video/ch04-conch.mp4', 'assets/img/ch04-conch-poster.jpg', 'Gloved hands picking horned conch from the volcanic rocks', 'F2'), duck: 0.5 },
+          media: video('assets/video/ch04-gather.mp4', 'assets/img/ch04-gather-poster.jpg', 'Underwater, a haenyeo reaches into the weed-covered rocks as bubbles rise around her', ''), duck: 0.5 },
         // 04-7 · statement (Meilin)
         { type: 'text',
           lead: 'As the ocean deteriorates, their simple wisdom, to take only what is enough and to give thanks, becomes a silent critique of modern consumerism.' },
@@ -356,7 +363,7 @@ window.SITE = {
       kr: '', krGloss: '',
       mood: 'regret',
       theme: { bg: '#141516', fg: '#C9CACA', muted: '#777B7D', accent: '#A9ACAD' },
-      tone: 'mono', sound: 'quiet', volume: 0.35,
+      tone: 'mono', sound: 'music05', volume: 0.45,
       modules: [
         // 05-1 · 05-1.png (Meilin): haenyeo walking away from the camera, black and white
         // TODO: sources of 05-1.png, 05-4-1.png, 05-4-2.jpg, 05-5.jpg, 05-6.png, 05-7.mp4, 05-8.jpg
@@ -410,7 +417,7 @@ window.SITE = {
       kr: '', krGloss: '',
       mood: 'acceptance',
       theme: { bg: '#0D3B4A', fg: '#F5F1EA', muted: '#A9C3C4', accent: '#E0703F' },
-      tone: 'colour', sound: 'waves', volume: 0.55,
+      tone: 'colour', sound: 'drift', volume: 0.55,
       modules: [
         // 06-1 · 06-1.avif (Meilin): older and younger haenyeo together at the harbour; colour returns here
         // TODO: sources of 06-1, 06-3-1, 06-3-2, 06-4, 06-5, 06-6, 06-7 and ending.png
@@ -471,9 +478,10 @@ window.SITE = {
     kr: '제주 해녀',
     statement: 'Their future is not ours to decide. We can understand their choices and respect them, and remember how they lived, worked and met the sea: taking only what is enough, and never alone.',
     media: img('assets/img/ending.jpg', 'Two haenyeo walking through a field of yellow canola flowers by the sea', ''),
+    backdrop: video('assets/video/ending-look.mp4', 'assets/img/ending-look-poster.jpg', 'Underwater, a haenyeo in an old round mask looks up towards the surface', ''),   // look.mp4 (Meilin, 14 Oct)
     loopLabel: 'Return to the surface',
     theme: { bg: '#111315', fg: '#E6E5E1', muted: '#8A8E90', accent: '#D8653B' },
-    sound: 'waves', volume: 0.3,
+    sound: 'drift', volume: 0.55,   // 06's bed carries on (Meilin, 14 Oct)
     credits: [
       ['Design & development', 'Meilin Chen · s4151128'],
       ['Course', 'COMM2595 Digital Narrative Theory and Practice · RMIT University · 2026'],
