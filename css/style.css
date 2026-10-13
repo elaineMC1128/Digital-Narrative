@@ -72,9 +72,11 @@ i, em { font-style: italic; }
 /* ---------- shared bits ---------- */
 .media { width: 100%; height: 100%; object-fit: cover; }
 .tone-mono .media { filter: grayscale(1) contrast(1.05) brightness(.9); }
+.veil { position: absolute; inset: 0; pointer-events: none; background: var(--bg); opacity: 0; }
 .shade {
   position: absolute; inset: 0; pointer-events: none;
   background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--bg) 70%, transparent) 0%, transparent 14%),
     linear-gradient(to top, color-mix(in srgb, var(--bg) 94%, transparent) 0%, color-mix(in srgb, var(--bg) 45%, transparent) 42%, transparent 72%),
     color-mix(in srgb, var(--bg) 18%, transparent);
 }
@@ -143,6 +145,12 @@ p { margin: 0 0 1em; }
    ===================================================================== */
 .landing { position: relative; height: 100vh; min-height: 560px; overflow: hidden; display: flex; align-items: flex-end; }
 .landing__media { position: absolute; inset: 0; }
+/* landing: darken only behind the title (left), so the tewak in the footage stays visible */
+.landing .shade {
+  background:
+    linear-gradient(to right, color-mix(in srgb, var(--bg) 78%, transparent) 0%, color-mix(in srgb, var(--bg) 35%, transparent) 45%, transparent 70%),
+    linear-gradient(to top, color-mix(in srgb, var(--bg) 55%, transparent) 0%, transparent 35%);
+}
 .landing__inner { position: relative; width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter) clamp(40px, 8vh, 96px); }
 .landing__title {
   font: 600 clamp(64px, 13.5vw, 230px)/.86 var(--f-display); text-transform: uppercase;
@@ -174,7 +182,7 @@ p { margin: 0 0 1em; }
 .chapter { position: relative; }
 
 /* --- G · opener --- */
-.m-opener { position: relative; height: 100vh; min-height: 560px; overflow: hidden; display: flex; align-items: flex-end; }
+.m-opener { position: relative; height: 100vh; min-height: 560px; overflow: hidden; clip-path: inset(0); display: flex; align-items: flex-end; }
 .m-opener__media { position: absolute; inset: 0; will-change: transform; }
 .m-opener__inner { position: relative; width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter) clamp(40px, 9vh, 110px); }
 .m-opener__label { font: 500 var(--t-caption)/1 var(--f-body); letter-spacing: .24em; text-transform: uppercase; color: var(--muted); }
@@ -191,8 +199,15 @@ p { margin: 0 0 1em; }
 .m-opener__sub { margin: .8em 0 0; font: 300 var(--t-lead)/1.4 var(--f-body); color: var(--muted); max-width: 34ch; }
 
 /* --- A · film --- */
-.m-film { position: relative; height: 100vh; min-height: 520px; overflow: hidden; display: flex; align-items: flex-end; }
+.m-film { position: relative; height: 100vh; min-height: 520px; overflow: hidden; clip-path: inset(0); display: flex; align-items: flex-end; }
 .m-film__media { position: absolute; inset: 0; will-change: transform; }
+/* REVEAL: while a full-screen frame scrolls in, its footage is fixed to the screen and
+   clipped to the frame (clip-path also clips fixed children), so the section above
+   slides away and uncovers it; the text in the frame is carried up with the edge. */
+.is-revealing > .m-opener__media, .is-revealing > .m-film__media, .is-revealing > .m-depth__media, .is-revealing > .m-dive__media, .is-revealing > .m-scene__media { position: fixed; }
+/* after a pin GSAP leaves translate(0,0) on the frame, which would stop position: fixed from working */
+.m-opener.is-revealing, .m-film.is-revealing, .m-depth.is-revealing, .m-dive.is-revealing, .m-scene.is-revealing { transform: none !important; }
+.m-depth .ref-tag { left: auto; right: var(--gutter); bottom: 24px; }
 .m-film__line {
   position: relative; width: 100%; max-width: var(--maxw); margin: 0 auto;
   padding: 0 var(--gutter) clamp(48px, 10vh, 120px);
@@ -210,6 +225,31 @@ p { margin: 0 0 1em; }
 .m-text .section-h { font: 500 var(--t-title)/1 var(--f-serif); font-size: clamp(40px, 5vw, 76px); margin-bottom: .4em; }
 .m-text .lead { font-size: clamp(22px, 2vw, 30px); }
 .m-text p:not(.lead) { color: color-mix(in srgb, var(--fg) 82%, transparent); max-width: 60ch; }
+
+/* text block with a small figure beside it */
+.m-text.has-figure { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: clamp(24px, 4vw, 72px); align-items: center; max-width: var(--maxw); margin: 0 auto; padding-inline: var(--gutter); }
+.m-text.has-figure .m-text__inner { margin: 0 0 0 calc((100vw - 2 * var(--gutter)) * .1); }
+.m-text__fig { position: relative; margin: 0; aspect-ratio: 4 / 5; overflow: hidden; }
+
+/* reference codes (link to the reference list) */
+.ref-tag {
+  position: absolute; left: 12px; bottom: 12px; z-index: 3;
+  font: 500 10px/1 var(--f-body); letter-spacing: .12em; text-decoration: none;
+  color: var(--fg); background: color-mix(in srgb, var(--bg) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fg) 30%, transparent); padding: 4px 6px; border-radius: 2px;
+}
+.ref-tag:hover { border-color: var(--accent); color: var(--accent); }
+.ref-tag--inline { position: static; display: inline-block; vertical-align: super; margin-left: .4em; font-size: 9px; padding: 2px 4px; }
+.m-film .ref-tag, .m-opener .ref-tag { left: auto; right: var(--gutter); bottom: 24px; }
+.m-spread__frame, .panel__frame, .strip-frame, .m-portrait figure { position: relative; }
+.refs__group { font: 500 11px/1.4 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--fg); margin: 22px 0 8px; }
+.refs { list-style: none; padding-left: 0; }
+.refs li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 8px; scroll-margin-top: 90px; }
+.refs li:target { color: var(--fg); }
+.refs__code { font: 500 11px/1.6 var(--f-display); color: var(--accent); letter-spacing: .06em; }
+.refs__used { display: block; margin-top: 4px; font-size: 12px; }
+.refs__used a { color: var(--accent); text-decoration: none; }
+.refs a { overflow-wrap: anywhere; }
 
 /* --- B · spread --- */
 .m-spread {
@@ -282,12 +322,13 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
 .strip-item { flex: 0 0 auto; margin: 0; height: 64vh; display: flex; flex-direction: column; gap: 14px; }
 .strip-item .strip-frame { flex: 1; overflow: hidden; aspect-ratio: 4 / 5; }
 .strip-item.is-landscape .strip-frame { aspect-ratio: 3 / 2; }
+.strip-item.is-landscape { height: 52vh; }
 .strip-item figcaption { text-transform: none; letter-spacing: .02em; font-size: 14px; max-width: 34ch; }
 .strip-item figcaption b { display: block; font: 500 clamp(18px, 1.6vw, 24px)/1.2 var(--f-serif); color: var(--fg); margin-bottom: 4px; letter-spacing: 0; }
 .strip-end { flex: 0 0 auto; width: 12vw; }
 
 /* --- F · depth --- */
-.m-depth { position: relative; height: 100vh; overflow: hidden; }
+.m-depth { position: relative; height: 100vh; overflow: hidden; clip-path: inset(0); }
 .m-depth__media { position: absolute; inset: 0; will-change: transform; }
 .m-depth__water { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(6, 26, 33, .15), rgba(2, 10, 13, .96)); opacity: 0; }
 .gauge {
@@ -306,6 +347,50 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
   grid-area: 1 / 1; max-width: 22ch; margin: 0 var(--gutter) 0 calc(var(--gutter) + 180px);
   font: 500 var(--t-line)/1.15 var(--f-serif); text-align: left; text-wrap: balance;
 }
+
+/* --- 02-2 → 02-4 · dive: one pinned screen, footage changes underneath, text moves --- */
+.m-dive { position: relative; z-index: 1; height: 100vh; overflow: hidden; clip-path: inset(0); }
+.m-dive__media { position: absolute; inset: 0; }
+.m-dive__layer { position: absolute; inset: 0; }
+.m-dive__dim { position: absolute; inset: 0; background: #02090c; pointer-events: none; }
+.m-dive__water { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(6, 26, 33, .1), rgba(2, 10, 13, .9)); opacity: 0; }
+.m-dive .ref-tag { left: auto; right: var(--gutter); bottom: 24px; }
+.m-dive__texts { position: absolute; inset: 0; pointer-events: none; text-shadow: 0 1px 24px rgba(0, 0, 0, .35); }
+.dive-text { position: absolute; top: 100%; left: 0; right: 0; margin: 0 auto; }
+.dive-stop { top: 50%; margin-top: -1.2em; width: min(22ch, calc(100% - 2 * var(--gutter) - 180px)); font: 500 var(--t-line)/1.15 var(--f-serif); text-wrap: balance; }
+.dive-line { padding: 0 var(--gutter); text-align: center; font: 500 var(--t-line)/1.12 var(--f-serif); text-wrap: balance; }
+.dive-line span { display: block; max-width: 22ch; margin: 0 auto; }
+.dive-facts.m-facts { padding: 0 var(--gutter); text-shadow: none; }
+.dive-facts .facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* --- 02-5 · gallery: rises with a 30° edge, photos pass beneath the text --- */
+.m-gallery {
+  position: relative; z-index: 2; background: var(--bg); padding-top: var(--slant);
+  clip-path: polygon(0 0, 100% var(--slant), 100% 100%, 0 100%);   /* edge high on the left, falling to the right */
+}
+.m-gallery.is-covering { margin-top: calc(-1 * (var(--vhpx) + var(--slant))); }
+/* while rising, the text sits fixed in its final place; the slanted clip-path also clips fixed children */
+.m-gallery.is-rising { transform: none !important; }
+.m-gallery.is-rising .m-gallery__text { position: fixed; }
+.m-gallery__stage { position: relative; height: 100vh; overflow: hidden; }
+.m-gallery__track { position: absolute; inset: 0; z-index: 1; }
+.g-item { position: absolute; left: 100%; margin: 0; }
+.g-item .media { display: block; height: auto; }
+.g-item .ref-tag { left: 8px; bottom: 8px; }
+.g-item--0 { top: 12vh; width: 34vw; }
+.g-item--1 { top: 30vh; width: 21vw; }
+.g-item--2 { top: 18vh; width: 38vw; }
+.g-item--3 { top: 44vh; width: 30vw; }
+.m-gallery__fade {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(to right, var(--bg) 0%, var(--bg) 34%, color-mix(in srgb, var(--bg) 0%, transparent) 58%);
+}
+.m-gallery__text {
+  position: absolute; z-index: 3; top: 50%; transform: translateY(-50%);
+  left: max(var(--gutter), calc((100vw - var(--maxw)) / 2 + var(--gutter))); width: min(34vw, 460px);
+}
+.m-gallery__text .section-h { font: 500 clamp(34px, 3.6vw, 56px)/1.02 var(--f-serif); }
+.m-gallery__text p:not(.lead) { color: color-mix(in srgb, var(--fg) 82%, transparent); }
 
 /* --- F · decline --- */
 .m-decline { position: relative; min-height: 100vh; display: flex; align-items: center; }
@@ -326,8 +411,8 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
 .ending { padding: clamp(120px, 24vh, 260px) 0 80px; }
 .ending__kr { font-size: clamp(56px, 10vw, 160px); line-height: 1; margin: 0 0 .3em; color: var(--accent); }
 .ending__statement { font: 400 italic clamp(28px, 3.4vw, 52px)/1.22 var(--f-serif); max-width: 26ch; margin: 0 0 1.4em; text-wrap: balance; }
-.ending__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; margin-top: 120px; padding-top: 32px; border-top: 1px solid var(--line); }
-.credits { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 10px 24px; font-size: 14px; }
+.ending__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; margin-top: 120px; padding-top: 32px; border-top: 1px solid var(--line); }
+.credits { margin: 0; display: grid; align-content: start; grid-template-columns: max-content 1fr; gap: 10px 24px; font-size: 14px; }
 .credits dt { font: 500 11px/1.9 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .credits dd { margin: 0; }
 .refs { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--muted); }
@@ -338,12 +423,28 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
    RESPONSIVE (phones / small tablets): horizontal sections stack
    ===================================================================== */
 @media (max-width: 800px) {
+  .dive-stop { width: auto; margin-left: calc(var(--gutter) + 110px); margin-right: var(--gutter); font-size: 26px; }
+  .dive-facts .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+  .dive-facts .fact__value { font-size: 44px; }
+  .dive-facts .rhythm { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 28px; }
+  .m-gallery__text { top: 11vh; transform: none; left: var(--gutter); right: var(--gutter); width: auto; }
+  .m-gallery__text p { font-size: 15px; }
+  .m-gallery__fade { background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 50%, color-mix(in srgb, var(--bg) 0%, transparent) 62%); }
+  .g-item--0 { top: 60vh; width: 62vw; }
+  .g-item--1 { top: 56vh; width: 40vw; }
+  .g-item--2 { top: 62vh; width: 66vw; }
+  .g-item--3 { top: 64vh; width: 54vw; }
+
   .topbar { grid-template-columns: 1fr auto; padding: 14px 20px; }
   .topbar__now { display: none; }
   .topbar__brand .kr { display: none; }
   .chapnav { display: none; }
+  .landing .media { object-position: 80% 50%; } /* keep the diver and her tewak in frame on phones */
 
   .m-text__inner { margin-left: var(--gutter); }
+  .m-text.has-figure { grid-template-columns: 1fr; }
+  .m-text.has-figure .m-text__inner { margin-left: 0; }
+  .m-text__fig { max-width: 320px; }
   .m-spread, .m-portrait { grid-template-columns: 1fr; gap: 28px; }
   .m-spread__fig, .m-spread.side-right .m-spread__fig,
   .m-spread__text, .m-spread.side-right .m-spread__text,
@@ -372,4 +473,80 @@ cite { font: 500 var(--t-caption)/1.5 var(--f-body); font-style: normal; letter-
 
 @media (prefers-reduced-motion: reduce) {
   .grain, .scroll-cue::after, .sound-toggle__bars i { animation: none !important; }
+}
+
+/* citation line inside a horizontal spread page (03) */
+.panel__text .cite { font: 500 var(--t-caption)/1.5 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.panel__text .cite i { text-transform: none; letter-spacing: .02em; }
+
+/* light chapters (03, 04): keep the footage clear, fade only behind the text at the bottom */
+.chapter--why .shade, .chapter--beauty .shade {
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--bg) 55%, transparent) 0%, transparent 12%),
+    linear-gradient(to top, color-mix(in srgb, var(--bg) 92%, transparent) 0%, color-mix(in srgb, var(--bg) 50%, transparent) 26%, transparent 48%);
+}
+
+/* a text block without a heading = a closing statement, set large and centred (end of 03) */
+.m-text.is-statement { min-height: 80vh; display: flex; align-items: center; }
+.m-text.is-statement .m-text__inner { width: 100%; max-width: 900px; margin: 0 auto; padding-inline: var(--gutter); text-align: center; }
+.m-text.is-statement .lead { font: 400 italic clamp(30px, 3.6vw, 56px)/1.2 var(--f-serif); text-wrap: balance; margin-bottom: .8em; }
+.m-text.is-statement p:not(.lead) { margin-inline: auto; max-width: 40ch; }
+
+/* --- scene: full-screen footage + narrow text block on the left (03-2) --- */
+.m-scene { position: relative; height: 100vh; min-height: 560px; overflow: hidden; clip-path: inset(0); display: flex; align-items: center; }
+.m-scene__media { position: absolute; inset: 0; }
+.m-scene .shade.m-scene__shade {
+  background:
+    linear-gradient(to right, color-mix(in srgb, var(--bg) 90%, transparent) 0%, color-mix(in srgb, var(--bg) 70%, transparent) 26%, transparent 50%),
+    linear-gradient(to bottom, color-mix(in srgb, var(--bg) 50%, transparent) 0%, transparent 12%);
+}
+.m-scene .ref-tag { left: auto; right: var(--gutter); bottom: 24px; }
+.m-scene__text { position: relative; margin-left: max(var(--gutter), calc((100vw - var(--maxw)) / 2 + var(--gutter))); width: min(28vw, 380px); }
+.m-scene__text .section-h { font: 500 clamp(32px, 3.4vw, 54px)/1.02 var(--f-serif); margin-bottom: .5em; }
+.m-scene__text .lead { font-size: clamp(18px, 1.5vw, 23px); }
+.m-scene__text p:not(.lead) { font-size: 15px; color: color-mix(in srgb, var(--fg) 85%, transparent); }
+.panel__note { margin: 1.4em 0 0; font-size: 15px; line-height: 1.6; max-width: 40ch; color: color-mix(in srgb, var(--fg) 82%, transparent); }
+@media (max-width: 800px) {
+  .m-scene { align-items: flex-end; }
+  .m-scene__text { margin: 0 var(--gutter) 9vh; width: auto; }
+  .m-scene .shade.m-scene__shade { background: linear-gradient(to top, color-mix(in srgb, var(--bg) 94%, transparent) 0%, color-mix(in srgb, var(--bg) 75%, transparent) 45%, transparent 75%); }
+}
+
+/* portrait page showing the whole frame, uncropped (03-3-2, 03-3-3) */
+.panel--portrait.is-full { width: min(94vw, 1280px); }
+.panel--portrait.is-full .panel__frame { flex: 0 0 58%; height: auto; aspect-ratio: 1920 / 1070; }
+@media (max-width: 800px) {
+  .panel--portrait.is-full .panel__frame { height: auto !important; aspect-ratio: 1920 / 1070; }
+}
+
+/* strip intro line (04-4) */
+.strip-intro { margin-top: 1.2em; font: 400 italic clamp(18px, 1.5vw, 24px)/1.35 var(--f-serif); color: var(--muted); max-width: 26ch; }
+.m-film__cite { display: block; margin-top: 1.2em; font: 500 var(--t-caption)/1.5 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.m-film__cite i { text-transform: none; letter-spacing: .02em; }
+
+/* strip with every frame the same size (04-4) */
+.m-strip.is-uniform .strip-item { height: auto; }
+.m-strip.is-uniform .strip-item .strip-frame { flex: none; height: 46vh; aspect-ratio: 4 / 3; }
+.m-strip.is-uniform .strip-item figcaption { max-width: calc(46vh * 4 / 3); }
+@media (max-width: 800px) {
+  .m-strip.is-uniform .strip-item .strip-frame { height: auto; width: 100%; }
+  .m-strip.is-uniform .strip-item figcaption { max-width: none; }
+}
+
+/* --- 05 additions (13 Oct) --- */
+.dots { grid-template-columns: repeat(var(--cols, 23), minmax(0, 1fr)); }
+.decline-h { font: 500 clamp(30px, 3vw, 46px)/1.05 var(--f-serif); margin-bottom: .6em; }
+.decline-count__labels { height: 4.6em; }
+/* scene shown whole (05-7): the bands above and below take the chapter colour */
+.m-scene.is-contain { background: var(--bg); }
+.m-scene.is-contain .m-scene__media .media { object-fit: contain; }
+/* text with a wide picture underneath, shown at its own shape (05-6) */
+.m-text.has-wide .m-text__fig.is-wide { aspect-ratio: auto; overflow: hidden; max-width: var(--maxw); margin: clamp(48px, 8vh, 96px) auto 0; padding-inline: var(--gutter); }
+.m-text__fig.is-wide .media { display: block; height: auto; }
+/* two photos in one spread (05-4): the second overlaps the first, lower and to the right */
+.m-spread__fig.is-pair .m-spread__frame { aspect-ratio: 3 / 2; }
+.m-spread__fig.is-pair .m-spread__frame--2 { width: 62%; margin: -16% 0 0 auto; box-shadow: 0 24px 60px rgba(0, 0, 0, .45); z-index: 1; }
+@media (max-width: 800px) {
+  .dots[style] { grid-template-columns: repeat(25, minmax(0, 1fr)); }
+  .m-spread__fig.is-pair .m-spread__frame--2 { width: 70%; margin-top: -12%; }
 }

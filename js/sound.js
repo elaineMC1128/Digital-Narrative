@@ -12,6 +12,7 @@ window.Sound = (() => {
   let unlocked = false;        // user has clicked once
   let currentKey = null;
   let currentVol = 0.5;
+  let duckBy = 1;             // 1 = full volume, 0.5 = half (while reading)
 
   function get(key, loop = true) {
     if (!files[key]) return null;
@@ -42,7 +43,7 @@ window.Sound = (() => {
     setEnabled(on) {
       enabled = on;
       unlocked = unlocked || on;
-      if (on && currentKey) fadeIn(currentKey, currentVol);
+      if (on && currentKey) fadeIn(currentKey, currentVol * duckBy);
       if (!on) Object.keys(loops).forEach(fadeOut);
     },
     isEnabled() { return enabled; },
@@ -54,7 +55,14 @@ window.Sound = (() => {
       currentKey = key; currentVol = vol;
       if (!enabled || !unlocked) return;
       if (prev && prev !== key) fadeOut(prev);
-      fadeIn(key, vol);
+      fadeIn(key, vol * duckBy);
+    },
+
+    /* temporarily lower the current ambience (e.g. 0.5 while a text block is read) */
+    duck(factor = 1) {
+      duckBy = factor;
+      const h = loops[currentKey];
+      if (enabled && h && h.playing()) h.fade(h.volume(), currentVol * duckBy, 800);
     },
 
     /* one-shot sound, e.g. the sumbisori whistle */
