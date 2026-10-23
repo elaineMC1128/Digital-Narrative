@@ -99,16 +99,17 @@ window.Sound = (() => {
   const level = () => currentVol * duckBy * voiceDuck;
 
   /* ---------- video with its own sound ---------- */
-  let voiceEl = null, voiceVol = 0, voiceDip = 0.6, voiceRaf = 0;
+  let voiceEl = null, voiceVol = 0, voiceDip = 0.6, voiceFadeMs = 2000;
+  /* each video keeps its own fade, so one clip can fade out while the next fades in */
   function fadeVideo(v, to, ms, done) {
-    cancelAnimationFrame(voiceRaf);
+    cancelAnimationFrame(v._fadeRaf);
     const from = v.volume, t0 = performance.now();
     const step = (t) => {
       const k = Math.min(1, (t - t0) / ms);
       try { v.volume = from + (to - from) * k; } catch (e) {}   // iOS ignores volume and just unmutes
-      if (k < 1) voiceRaf = requestAnimationFrame(step); else if (done) done();
+      if (k < 1) v._fadeRaf = requestAnimationFrame(step); else if (done) done();
     };
-    voiceRaf = requestAnimationFrame(step);
+    v._fadeRaf = requestAnimationFrame(step);
   }
   function startVoice() {
     const v = voiceEl;
@@ -116,11 +117,11 @@ window.Sound = (() => {
     voiceDuck = voiceDip; bedLevel(currentKey, level(), 2000);
     v.currentTime = 0; v.volume = 0; v.muted = false;
     v.play().catch(() => {});
-    fadeVideo(v, voiceVol, 2000);
+    fadeVideo(v, voiceVol, voiceFadeMs);
   }
   function stopVoice(v) {
-    voiceDuck = 1; bedLevel(currentKey, level(), 2000);
-    if (v) fadeVideo(v, 0, 1500, () => { v.muted = true; });
+    if (!voiceEl) { voiceDuck = 1; bedLevel(currentKey, level(), 2000); }   // another clip's voice may already have taken over
+    if (v) fadeVideo(v, 0, 1500, () => { if (v !== voiceEl) v.muted = true; });
   }
 
   return {
@@ -159,9 +160,15 @@ window.Sound = (() => {
     },
 
     /* a video that plays its own sound while on screen; dip = how far the bed drops under it */
-    voiceOn(v, vol = 0.9, dip = 0.6) {
-      voiceEl = v; voiceVol = vol; voiceDip = dip;
+    voiceOn(v, vol = 0.9, dip = 0.6, fadeMs = 2000) {
+      voiceEl = v; voiceVol = vol; voiceDip = dip; voiceFadeMs = fadeMs;
       if (enabled) startVoice();
+    },
+    /* a voice clip that plays once has finished: let the bed rise back (the clip's own sound already faded out) */
+    voiceEnded(v) {
+      if (voiceEl !== v) return;
+      voiceDuck = 1;
+      if (enabled) bedLevel(currentKey, level(), 2500);
     },
     voiceOff(v) {
       if (voiceEl === v) voiceEl = null;

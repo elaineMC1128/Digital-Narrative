@@ -82,17 +82,34 @@
       </div>`,
 
     film: (m) => `
-      <div class="m-film align-${m.align || 'left'}" data-module="film" ${m.cue ? `data-cue="${m.cue}"` : ''} ${m.voice ? `data-voice="${m.voice}" data-voice-dip="${m.voiceDip || 0.6}"` : ''}>
+      <div class="m-film align-${m.align || 'left'}" data-module="film" ${m.hold ? `data-hold="${m.hold}"` : ''} ${m.cue ? `data-cue="${m.cue}"` : ''} ${m.voice ? `data-voice="${m.voice}" data-voice-dip="${m.voiceDip || 0.6}"` : ''}>
         <div class="m-film__media">${media(m.media, 'media', false)}</div>
         <div class="shade"></div>
         <div class="veil"></div>
         ${refTag(m.media && m.media.ref)}
-        <p class="m-film__line"><span>${m.line || ''}${refTag(m.lineRef, 'ref-tag ref-tag--inline')}</span>${m.cite ? `<cite class="m-film__cite">${m.cite}</cite>` : ''}</p>
+        ${m.heading || m.lead ? `<div class="m-film__over">
+          ${m.heading ? `<h3 class="section-h">${m.heading}</h3>` : ''}
+          ${m.lead ? `<p class="lead">${m.lead}${inlineRef(m.leadRef)}</p>` : ''}
+        </div>` : ''}
+        <p class="m-film__line${/^\s*[“"]/.test(m.line || '') ? ' is-quote' : ''}"><span${m.lineWidth || m.lineSize ? ` style="${m.lineWidth ? `max-width:${m.lineWidth};` : ''}${m.lineSize ? `font-size:${m.lineSize};` : ''}"` : ''}>${m.line || ''}${refTag(m.lineRef, 'ref-tag ref-tag--inline')}</span>${m.cite ? `<cite class="m-film__cite">${m.cite}</cite>` : ''}</p>
         ${credit(m.media)}
       </div>`,
 
-    text: (m) => `
-      <div class="m-text${m.media ? (m.figure === 'wide' ? ' has-wide' : ' has-figure') : ''}${!m.heading && !m.media ? ' is-statement' : ''}" data-module="text" ${m.duck ? `data-duck="${m.duck}"` : ''}>
+    /* figure: 'split' → footage fills the left of the screen, full height; text on the right (01-3) */
+    text: (m) => m.figure === 'split' ? `
+      <div class="m-text is-split" data-module="text" ${m.duck ? `data-duck="${m.duck}"` : ''} ${m.voice ? `data-voice="${m.voice}" data-voice-dip="${m.voiceDip || 0.6}" data-voice-fade="${m.voiceFade || 2000}"` : ''}>
+        <figure class="m-text__split">
+          ${media(m.media)}
+          <div class="m-text__fade"></div>
+          ${m.captions ? `<p class="m-text__cap" data-captions='${JSON.stringify(m.captions).replace(/'/g, '&#39;')}'></p>` : ''}
+        </figure>
+        <div class="m-text__inner">
+          ${m.heading ? `<h3 class="section-h">${m.heading}</h3>` : ''}
+          ${m.lead ? `<p class="lead">${m.lead}${refTag(m.ref, 'ref-tag ref-tag--inline')}</p>` : ''}
+          ${paras(m.body, m.bodyRef)}
+        </div>
+      </div>` : `
+      <div class="m-text${m.media ? (m.figure === 'wide' ? ' has-wide' : ' has-figure') : ''}${!m.heading && !m.media ? ' is-statement' : ''}${m.hand ? ' is-hand' : ''}" data-module="text" ${m.duck ? `data-duck="${m.duck}"` : ''}>
         <div class="m-text__inner">
           ${m.heading ? `<h3 class="section-h">${m.heading}</h3>` : ''}
           ${m.lead ? `<p class="lead">${m.lead}${refTag(m.ref, 'ref-tag ref-tag--inline')}</p>` : ''}
@@ -121,6 +138,24 @@
         <blockquote><p class="quote">${m.quote}</p><cite>${m.cite || ''}</cite></blockquote>
       </div>`,
 
+    /* 02 journey stage: one pinned screen. Footage (one or more clips, each may play its own sound),
+       photos passing right to left above it, text fading into place as you scroll */
+    stage: (m) => `
+      <div class="m-stage" data-module="stage" data-step="${m.step ?? ''}" data-clips='${JSON.stringify((m.clips || []).map((c) => ({ voice: c.voice || 0, once: !!c.once })))}' ${m.bed ? `data-bed='${JSON.stringify(m.bed)}'` : ''}>
+        <div class="m-stage__media">
+          ${(m.clips || []).map((c) => `<div class="m-stage__layer">${media(c.media, 'media', false)}${refTag(c.media && c.media.ref)}</div>`).join('')}
+          <div class="m-stage__dim" style="opacity:${m.dim ?? .4}"></div>
+        </div>
+        ${m.images && m.images.length ? `<div class="m-stage__track">${m.images.map((im) => `<figure class="s-item">${media(im)}</figure>`).join('')}</div>` : ''}
+        <div class="m-stage__texts${m.images && m.images.length ? ' has-images' : ''}">
+          ${(m.texts || []).map((t) => `<div class="s-text" data-clip="${t.clip || 0}">
+            ${t.heading ? `<h3 class="section-h">${t.heading}</h3>` : ''}
+            ${t.lead ? `<p class="lead">${t.lead}${refTag(t.ref, 'ref-tag ref-tag--inline')}</p>` : ''}
+            ${paras(t.body, t.bodyRef)}
+          </div>`).join('')}
+        </div>
+      </div>`,
+
     /* 02-2 → 02-4: one pinned screen; the footage changes underneath, only the text moves */
     dive: (m) => {
       const max = m.maxDepth || 30;
@@ -130,12 +165,12 @@
           <div class="m-dive__layer">${media(sc.media, 'media', false)}<div class="m-dive__dim" style="opacity:${sc.dim || 0}"></div>${refTag(sc.media && sc.media.ref)}</div>`).join('');
       const texts = m.scenes.map((sc, i) => {
         if (sc.stops) return sc.stops.map((st) => `<p class="dive-text dive-stop" data-step="${i}" data-depth="${st.depth}">${st.text}${inlineRef(st.ref)}</p>`).join('');
-        if (sc.line) return `<p class="dive-text dive-line" data-step="${i}"><span>${sc.line}</span></p>`;
+        if (sc.line) return `<p class="dive-text dive-line" data-step="${i}"><span>${sc.line}${inlineRef(sc.lineRef)}</span></p>`;
         if (sc.facts) return `<div class="dive-text dive-facts m-facts" data-step="${i}">${factsInner(sc.facts)}</div>`;
         return '';
       }).join('');
       return `
-      <div class="m-dive" data-module="dive" data-max="${max}" ${m.ambience ? `data-ambience='${JSON.stringify(m.ambience)}'` : ''}>
+      <div class="m-dive" data-module="dive" data-max="${max}" data-step="${m.step ?? ''}" ${m.ambience ? `data-ambience='${JSON.stringify(m.ambience)}'` : ''}>
         <div class="m-dive__media">${layers}<div class="m-dive__water"></div></div>
         <div class="gauge" aria-hidden="true">
           <div class="gauge__scale">${ticks.join('')}</div>
@@ -194,7 +229,7 @@
         <div class="h-track">
           <div class="strip-head">
             <h3 class="section-h">${m.heading || ''}</h3>
-            ${m.intro ? `<p class="strip-intro">${m.intro}</p>` : `<p class="caption">${m.items.length} moments · scroll</p>`}
+            ${m.intro ? `<p class="strip-intro">${m.intro}</p>` : ''}
           </div>
           ${m.items.map((it) => `
             <figure class="strip-item${it.shape === 'wide' ? ' is-landscape' : ''}">
@@ -204,6 +239,44 @@
           <div class="strip-end"></div>
         </div>
         <div class="h-progress"><span></span></div>
+      </div>`,
+
+    /* big numbers over a darkened photo (05-5) */
+    figures: (m) => `
+      <div class="m-figures" data-module="figures">
+        ${m.media ? `<div class="m-figures__media">${media(m.media, 'media', false)}</div><div class="m-figures__dim"></div>${refTag(m.media.ref)}` : ''}
+        <div class="m-figures__inner m-facts">
+          ${m.heading ? `<h3 class="section-h">${m.heading}</h3>` : ''}
+          ${m.quote ? `<p class="m-figures__quote">${m.quote}${inlineRef(m.quoteRef)}</p>${m.cite ? `<p class="m-figures__cite">${m.cite}</p>` : ''}` : ''}
+          ${factsInner({ ...m, heading: null })}
+        </div>
+      </div>`,
+
+    /* before → after bars: the old amount as a full bar, the new one shrinking to scale (05-7) */
+    bars: (m) => `
+      <div class="m-bars" data-module="bars">
+        <div class="m-bars__inner">
+          ${m.heading ? `<h3 class="section-h">${m.heading}</h3>` : ''}
+          ${m.lead ? `<p class="m-bars__lead">${m.lead}${inlineRef(m.leadRef)}</p>` : ''}
+          <ul class="bars">${m.items.map((it) => `
+            <li class="bar" data-from="${it.from[1]}" data-to="${it.to[1]}">
+              <div class="bar__label">${it.label}</div>
+              <div class="bar__row bar__row--from"><span class="bar__year">${it.from[0]}</span><span class="bar__track"><span class="bar__fill" style="width:100%"></span></span><span class="bar__val">${it.from[1].toLocaleString('en-US')} ${m.unit || ''}</span></div>
+              <div class="bar__row bar__row--to"><span class="bar__year">${it.to[0]}</span><span class="bar__track"><span class="bar__fill bar__fill--to" style="width:100%"></span></span><span class="bar__val"><b>${it.from[1].toLocaleString('en-US')}</b> ${m.unit || ''} <em>${it.change || ''}</em></span></div>
+            </li>`).join('')}
+          </ul>
+          ${m.caption ? `<p class="caption">${m.caption}${refTag(m.ref, 'ref-tag ref-tag--inline')}</p>` : ''}
+        </div>
+      </div>`,
+
+    /* a part of a whole as one long bar (05-4b: under 50) */
+    share: (m) => `
+      <div class="m-share" data-module="share" data-total="${m.total}" data-part="${m.part}">
+        <div class="m-share__inner">
+          ${m.heading ? `<h3 class="section-h">${m.heading}</h3>` : ''}
+          <div class="share__nums"><span class="share__part">&lt;${m.part}</span><span class="share__of">${m.partLabel}<br>${m.totalLabel}${inlineRef(m.ref)}</span></div>
+          <div class="share__bar"><span class="share__fill"></span></div>
+        </div>
       </div>`,
 
     decline: (m) => {
@@ -306,6 +379,21 @@
     </section>`;
   story.innerHTML = html;
 
+  /* 02 journey: the stage names along the bottom of the screen while the journey runs */
+  const JCH = S.chapters.findIndex((ch) => ch.journey);
+  const J = (() => {
+    if (JCH < 0) return { set() {}, hide() {} };
+    const bar = document.createElement('nav');
+    bar.className = 'journey'; bar.setAttribute('aria-hidden', 'true');
+    bar.innerHTML = `<ol>${S.chapters[JCH].journey.map((n) => `<li><span>${n}</span></li>`).join('')}</ol>`;
+    document.body.appendChild(bar);
+    const lis = [...bar.querySelectorAll('li')];
+    return {
+      set(i) { bar.classList.add('is-on'); lis.forEach((li, k) => { li.classList.toggle('is-now', k === i); li.classList.toggle('is-past', k < i); }); },
+      hide() { bar.classList.remove('is-on'); }
+    };
+  })();
+
   /* chapter nav */
   $('.chapnav').innerHTML = S.chapters.map((ch) =>
     `<button type="button" data-scroll-to="#ch-${ch.num}" aria-label="Chapter ${ch.num}: ${ch.short}">
@@ -348,6 +436,7 @@
   let stopVoiceover = null;   // set while a module's voice track plays (04-3)
   function activate(scene) {
     activeScene = scene === 'landing' || scene === 'ending' ? scene : +scene;
+    if (activeScene !== JCH) J.hide();
     if (stopVoiceover) stopVoiceover(activeScene);
     if (scene === 'landing') {
       setTheme(L.theme); Sound.setScene(L.sound, 0.6);
@@ -362,7 +451,7 @@
       setTheme(ch.theme);
       const o = override[+scene];
       if (o) Sound.setScene(o.key, o.vol);
-      else Sound.setScene(ch.sound, ch.volume ?? 0.5);
+      else Sound.setScene(ch.sound, ch.volume ?? 0.5, ch.soundFade || {});
       navBtns.forEach((b, i) => b.classList.toggle('is-active', i === +scene));
       nowNum.textContent = ch.num; nowName.textContent = ch.short;
     }
@@ -390,7 +479,7 @@
     walk(el);
     return $$('.w', el);
   }
-  const fadeUp = (targets, trigger, start = 'top 72%') => gsap.from(targets, {
+  const fadeUp = (targets, trigger, start = 'top 72%') => (!targets || (Array.isArray(targets) && !targets.length)) ? null : gsap.from(targets, {
     y: 40, opacity: 0, duration: 1.1, stagger: 0.1, ease: 'power3.out',
     scrollTrigger: { trigger, start, toggleActions: 'play none none reverse' }
   });
@@ -405,7 +494,7 @@
     if (!el.dataset.voice) return;
     const vid = $('video', el);
     ScrollTrigger.create({ trigger: el, start: 'top 60%', end: 'bottom 40%',
-      onToggle: (self) => self.isActive ? Sound.voiceOn(vid, +el.dataset.voice, +el.dataset.voiceDip) : Sound.voiceOff(vid) });
+      onToggle: (self) => self.isActive ? Sound.voiceOn(vid, +el.dataset.voice, +el.dataset.voiceDip, +el.dataset.voiceFade || 2000) : Sound.voiceOff(vid) });
   };
   const reveal = (el) => ScrollTrigger.create({ trigger: el, start: 'top bottom', end: 'top top', toggleClass: 'is-revealing' });
 
@@ -431,11 +520,12 @@
       const mediaBox = $('.m-opener__media', el);
       const inner = $('.m-opener__inner', el);
       const words = splitWords($('.m-opener__title', el));
-      gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 60%', toggleActions: 'play none none reverse' } })
+      const intro = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 60%', toggleActions: 'play none none reverse' } })
         .from($('.m-opener__label', el), { opacity: 0, y: 20, duration: .8 })
         .from($('.m-opener__num', el), { opacity: 0, y: 60, duration: 1.4, ease: 'power3.out' }, '<')
-        .from(words, { opacity: 0, y: 36, rotate: 2, duration: 1.1, stagger: .08, ease: 'power3.out' }, '-=1.1')
-        .from($$('.m-opener__meta, .m-opener__sub', el), { opacity: 0, y: 20, duration: .9, stagger: .12 }, '-=.6');
+        .from(words, { opacity: 0, y: 36, rotate: 2, duration: 1.1, stagger: .08, ease: 'power3.out' }, '-=1.1');
+      const extra = $$('.m-opener__meta, .m-opener__sub', el);   // some openers have no gloss or subtitle now
+      if (extra.length) intro.from(extra, { opacity: 0, y: 20, duration: .9, stagger: .12 }, '-=.6');
 
       const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top top', end: '+=90%', pin: true, scrub: true } })
         .fromTo(mediaBox, { scale: 1.14 }, { scale: 1, ease: 'none', duration: 1 }, 0)
@@ -462,9 +552,10 @@
 
     film(el) {
       const words = splitWords($('.m-film__line span', el));
-      const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top top', end: '+=100%', pin: true, scrub: true } })
-        .fromTo($('.m-film__media', el), { scale: 1.1 }, { scale: 1, ease: 'none', duration: 1 }, 0)
-        .fromTo(words, { opacity: .1 }, { opacity: 1, stagger: .05, duration: .2, ease: 'none' }, .05);
+      const hold = +el.dataset.hold || 1;   // screens the frame stays pinned (longer for a clip people should hear out)
+      const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top top', end: '+=' + hold * 100 + '%', pin: true, scrub: true } })
+        .fromTo($('.m-film__media', el), { scale: 1.1 }, { scale: 1, ease: 'none', duration: 1 }, 0);
+      if (words.length) tl.fromTo(words, { opacity: .1 }, { opacity: 1, stagger: .05, duration: .2, ease: 'none' }, .05);
       /* footage that keeps its own sound (01-2): heard only while on screen, blended with the ambience */
       voice(el);
       /* sound cue lands as the last word of the line appears (scrolling down only) */
@@ -476,6 +567,35 @@
     },
 
     text(el) {
+      if (el.classList.contains('is-split')) {
+        fadeUp($$('.m-text__inner > *', el), el, 'top 55%');
+        const vid = $('video', el);
+        /* plays once and rests on its last shot; starts again only after the reader has left and come back */
+        vid.loop = false; vid.removeAttribute('loop'); vid.dataset.once = '1'; vid.dataset.replay = '1';
+        const cap = $('.m-text__cap', el);
+        if (cap) {
+          const lines = JSON.parse(cap.dataset.captions);
+          let shown = null;
+          const sync = () => {
+            const t = vid.currentTime;
+            const hit = lines.find(([a, b]) => t >= a && t < b);
+            const txt = hit ? hit[2] : null;
+            if (txt !== shown) {
+              shown = txt;
+              if (txt) cap.textContent = '「' + txt + '」';   // each line in corner brackets (Meilin, 23 Oct)
+              cap.classList.toggle('is-on', !!txt);
+            }
+            if (!vid.paused && !vid.ended) requestAnimationFrame(sync);
+          };
+          vid.addEventListener('play', () => requestAnimationFrame(sync));
+          vid.addEventListener('seeked', sync);
+          vid.addEventListener('ended', sync);
+        }
+        /* its own sound: fades in with the picture, and when the clip ends the bed comes back up */
+        voice(el);
+        vid.addEventListener('ended', () => Sound.voiceEnded(vid));
+        return;
+      }
       fadeUp($$('.m-text__inner > *', el), el);
       drift($('.m-text__inner', el), el, 70, -70);
       const fig = $('.m-text__fig', el);
@@ -577,7 +697,74 @@
       tl.to({}, { duration: coverNext ? 1 + slant() / vh() : .3 });
 
       ScrollTrigger.create({ animation: tl, trigger: el, start: 'top top', end: () => '+=' + tl.duration() * vh(),
-        pin: true, scrub: true, invalidateOnRefresh: true });
+        pin: true, scrub: true, invalidateOnRefresh: true,
+        onToggle: (self) => { if (self.isActive && el.dataset.step !== '') J.set(+el.dataset.step); } });
+      reveal(el);
+    },
+
+    /* 02 journey stage: pinned; photos pass right to left, texts fade into place one after another,
+       the footage switches clip when a text that belongs to the next clip arrives */
+    stage(el) {
+      const vh = () => window.innerHeight;
+      const ch = +el.closest('[data-scene]').dataset.scene;
+      const layers = $$('.m-stage__layer', el);
+      const vids = layers.map((l) => $('video', l));
+      const meta = JSON.parse(el.dataset.clips || '[]');
+      const texts = $$('.s-text', el);
+      const track = $('.m-stage__track', el);
+      const step = el.dataset.step === '' ? null : +el.dataset.step;
+      const bed = el.dataset.bed ? JSON.parse(el.dataset.bed) : null;
+      vids.forEach((v, i) => { if (meta[i] && meta[i].once) { v.loop = false; v.removeAttribute('loop'); v.dataset.once = '1'; v.dataset.replay = '1'; } });
+
+      if (layers.length > 1) gsap.set(layers.slice(1), { opacity: 0 });
+      if (texts.length) gsap.set(texts, { opacity: 0, y: 36 });
+      const tl = gsap.timeline({ defaults: { ease: 'none' } });
+      const SEG = 1.15;                       // screens of scrolling per text
+      const switches = [{ at: 0, clip: 0 }];  // where each clip takes over
+      let clip = 0;
+      texts.forEach((t, i) => {
+        const at = .25 + i * SEG;
+        const c = +t.dataset.clip || 0;
+        if (c !== clip && layers[c]) {
+          tl.to(layers[c], { opacity: 1, duration: .3 }, at - .3);
+          switches.push({ at: at - .15, clip: c }); clip = c;
+        }
+        tl.to(t, { opacity: 1, y: 0, duration: .4, ease: 'power2.out' }, at);
+        if (i < texts.length - 1) tl.to(t, { opacity: 0, y: -24, duration: .22, ease: 'power1.in' }, at + SEG - .3);
+      });
+      let total = .25 + texts.length * SEG;
+      if (track) total = Math.max(total, 2.2);
+      if (track) tl.fromTo(track, { x: () => window.innerWidth }, { x: () => -track.scrollWidth, duration: total }, 0);
+      tl.to({}, { duration: .35 }, total);
+
+      /* sound + playback: the clip on screen plays (with its own sound if it has one) */
+      let cur = -1, active = false;
+      const startClip = (k) => {
+        const v = vids[k];
+        if (!v) return;
+        if (v.dataset.once && v.ended) v.currentTime = 0;
+        if (meta[k] && meta[k].voice) Sound.voiceOn(v, meta[k].voice, 0, 900);
+        else v.play().catch(() => {});
+        if (!Sound.isEnabled()) v.play().catch(() => {});
+      };
+      const stopClip = (k) => { const v = vids[k]; if (v && meta[k] && meta[k].voice) Sound.voiceOff(v); };
+      const clipAt = (t) => switches.filter((s) => s.at <= t).pop().clip;
+      const update = (self) => {
+        if (!active) return;
+        const k = clipAt(self.progress * tl.duration());
+        if (k !== cur) { stopClip(cur); cur = k; startClip(k); }
+      };
+      ScrollTrigger.create({ animation: tl, trigger: el, start: 'top top', end: () => '+=' + tl.duration() * vh(),
+        pin: true, scrub: true, invalidateOnRefresh: true,
+        onToggle: (self) => {
+          active = self.isActive;
+          if (active) {
+            if (step !== null) J.set(step);
+            if (bed) { override[ch] = { key: bed.key, vol: bed.vol }; if (activeScene === ch) Sound.setScene(bed.key, bed.vol, { in: 2500 }); }
+            cur = -1; update(self);
+          } else { stopClip(cur); cur = -1; }
+        },
+        onUpdate: update });
       reveal(el);
     },
 
@@ -622,6 +809,46 @@
           .fromTo(bar, { scaleX: 0 }, { scaleX: 1, ease: 'none' }, 0);
       });
       fadeUp($$('.panel__text > *, .panel blockquote, .strip-head > *', el).slice(0, 4), el, 'top 60%');
+    },
+
+    figures(el) {
+      const img = $('.m-figures__media .media', el);
+      if (img) gsap.fromTo(img, { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true } });
+      fadeUp($$('.m-figures__quote, .m-figures__cite, .section-h', el), el, 'top 60%');
+      $$('.fact', el).forEach((f, i) => {
+        const n = $('.num', f);
+        const m = n.textContent.match(/^([^\d]*)([\d,.]+)(.*)$/);
+        gsap.from(f, { opacity: 0, y: 30, duration: 1, delay: i * .15, ease: 'power2.out', scrollTrigger: { trigger: el, start: 'top 45%', toggleActions: 'play none none reverse' } });
+        if (!m) return;
+        const o = { v: 0 }, end = parseFloat(m[2].replace(/,/g, ''));
+        gsap.to(o, { v: end, duration: 1.6, delay: i * .15, ease: 'power2.out', scrollTrigger: { trigger: el, start: 'top 45%', toggleActions: 'play none none reverse' },
+          onUpdate: () => { n.textContent = m[1] + Math.round(o.v).toLocaleString('en-US') + m[3]; } });
+      });
+    },
+
+    bars(el) {
+      fadeUp($$('.section-h, .m-bars__lead', el), el, 'top 70%');
+      /* all bars move together on one scroll range, each a little after the one above;
+         everything has landed by the time the block sits in the middle of the screen */
+      const tl = gsap.timeline({ scrollTrigger: { trigger: $('.bars', el), start: 'top 85%', end: 'center 55%', scrub: true } });
+      $$('.bar', el).forEach((b, i) => {
+        const from = +b.dataset.from, to = +b.dataset.to;
+        const val = $('.bar__row--to b', b);
+        const o = { v: from };
+        const at = i * .12;
+        tl.fromTo($('.bar__fill--to', b), { width: '100%' }, { width: Math.max(.4, to / from * 100) + '%', ease: 'power1.inOut', duration: 1 }, at)
+          .to(o, { v: to, ease: 'power1.inOut', duration: 1, onUpdate: () => { val.textContent = Math.round(o.v).toLocaleString('en-US'); } }, at)
+          .fromTo($('.bar__row--to em', b), { opacity: 0 }, { opacity: 1, duration: .2 }, at + .85);
+      });
+      fadeUp($('.caption', el), el, 'top 40%');
+    },
+
+    share(el) {
+      const fill = $('.share__fill', el);
+      const pct = (+el.dataset.part / +el.dataset.total) * 100;
+      fadeUp($$('.section-h, .share__nums', el), el, 'top 70%');
+      gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 65%', end: 'top 25%', scrub: true } })
+        .fromTo(fill, { width: '100%', backgroundColor: 'var(--muted)' }, { width: Math.max(.5, pct) + '%', backgroundColor: 'var(--fg)', ease: 'power1.inOut' });
     },
 
     decline(el) {
@@ -724,7 +951,11 @@
      =================================================================== */
   const io = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
-      if (e.isIntersecting) { if (!(e.target.dataset.once && e.target.ended)) e.target.play().catch(() => {}); }
+      if (e.isIntersecting) {
+        const v = e.target;
+        if (v.dataset.once && v.ended && v.dataset.replay) v.currentTime = 0;   // 01-3: back on screen → from the start
+        if (!(v.dataset.once && v.ended)) v.play().catch(() => {});
+      }
       else e.target.pause();
     });
   }, { threshold: 0.05 });
